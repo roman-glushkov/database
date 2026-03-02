@@ -1,0 +1,82 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 YaBrowser/25.12.0.0 Safari/537.36" version="29.3.8">
+  <diagram name="Страница-1" id="spR9oSur25pkRcmoJq6t">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-19" edge="1" parent="1" source="5RR-vuXWZxOJ33U7Ae-9-1" style="edgeStyle=orthogonalEdgeStyle;shape=link;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="5RR-vuXWZxOJ33U7Ae-9-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-28" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-19" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="M" vertex="1">
+          <mxGeometry relative="1" x="0.4375" y="-13" as="geometry">
+            <mxPoint x="13" y="-6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-29" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-19" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="M" vertex="1">
+          <mxGeometry relative="1" x="-0.4792" y="12" as="geometry">
+            <mxPoint x="-12" y="9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-23" edge="1" parent="1" source="5RR-vuXWZxOJ33U7Ae-9-1" style="edgeStyle=orthogonalEdgeStyle;shape=link;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="5RR-vuXWZxOJ33U7Ae-9-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-24" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-23" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.4851" y="12" as="geometry">
+            <mxPoint x="5" y="12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-25" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-23" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="M" vertex="1">
+          <mxGeometry relative="1" x="0.4478" y="-6" as="geometry">
+            <mxPoint x="-6" y="-6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-1" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#FFFFFF,#FFFFFF);fontColor=light-dark(#000000,#000000);" value="&lt;div&gt;&lt;b&gt;Компьютер&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Модель&lt;/div&gt;&lt;div&gt;Производитель&lt;/div&gt;&lt;div&gt;Операционная система&lt;/div&gt;&lt;div&gt;Серийный номер&lt;/div&gt;" vertex="1">
+          <mxGeometry height="160" width="160" x="40" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-20" edge="1" parent="1" source="5RR-vuXWZxOJ33U7Ae-9-3" style="edgeStyle=orthogonalEdgeStyle;shape=link;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="5RR-vuXWZxOJ33U7Ae-9-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="510" y="320" />
+              <mxPoint x="510" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-26" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-20" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="M" vertex="1">
+          <mxGeometry relative="1" x="0.5515" y="-14" as="geometry">
+            <mxPoint x="13" y="14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-27" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-20" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.5147" y="14" as="geometry">
+            <mxPoint x="-11" y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-21" edge="1" parent="1" source="5RR-vuXWZxOJ33U7Ae-9-3" style="edgeStyle=orthogonalEdgeStyle;shape=link;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="5RR-vuXWZxOJ33U7Ae-9-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-31" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-21" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.5" y="7" as="geometry">
+            <mxPoint x="-7" y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cb-PquUINNlbseFrD96G-1" connectable="0" parent="5RR-vuXWZxOJ33U7Ae-9-21" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.3533" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-3" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#FFFFFF,#FFFFFF);fontColor=light-dark(#000000,#000000);" value="&lt;div&gt;&lt;b&gt;Программа&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Название&lt;/div&gt;&lt;div&gt;Версия&lt;/div&gt;&lt;div&gt;Разработчик&lt;/div&gt;&lt;div&gt;Тип программы&lt;/div&gt;" vertex="1">
+          <mxGeometry height="160" width="160" x="600" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-4" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#FFFFFF,#FFFFFF);fontColor=light-dark(#000000,#000000);" value="&lt;div&gt;&lt;b&gt;Установленная программа&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Дата установки&lt;/div&gt;&lt;div&gt;Способ установки&lt;/div&gt;&lt;div&gt;Статус лицензии&lt;/div&gt;&lt;div&gt;Дата обновления&lt;/div&gt;" vertex="1">
+          <mxGeometry height="160" width="160" x="320" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-5" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#FFFFFF,#FFFFFF);fontColor=light-dark(#000000,#000000);" value="&lt;div&gt;&lt;b&gt;Пользователь&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;ФИО&lt;/div&gt;&lt;div&gt;Должность&lt;/div&gt;&lt;div&gt;Телефон&lt;/div&gt;&lt;div&gt;Электронная почта&lt;/div&gt;" vertex="1">
+          <mxGeometry height="160" width="160" x="40" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="5RR-vuXWZxOJ33U7Ae-9-6" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#FFFFFF,#FFFFFF);fontColor=light-dark(#000000,#000000);" value="&lt;div&gt;&lt;b&gt;Лицензия&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Тип лицензии&lt;/div&gt;&lt;div&gt;Регистрационный номер&lt;/div&gt;&lt;div&gt;Срок действия&lt;/div&gt;&lt;div&gt;Количество установок&lt;/div&gt;" vertex="1">
+          <mxGeometry height="160" width="160" x="600" y="520" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
