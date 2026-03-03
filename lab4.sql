@@ -26,7 +26,7 @@ VALUES
 
 -- c. С чтением значения из другой таблицы
 INSERT INTO
-  component (NAME, TYPE, manufacturer, release_year)
+  COMPONENT (NAME, TYPE, manufacturer, release_year)
 SELECT
   spec_value,
   'Видеокарта',
@@ -231,6 +231,7 @@ GROUP BY
 HAVING
   SUM(quantity) > 300;
 
+
 -- Найти группы характеристик, в которых больше 3 характеристик
 SELECT
   spec_group,
@@ -242,134 +243,145 @@ GROUP BY
 HAVING
   COUNT(*) > 3;
 
+
 -- Найти компоненты, которые используются в компьютерах более 1 раза
 SELECT
   component_id,
   SUM(quantity) AS общее_количество
 FROM
-  configuration
+  CONFIGURATION
 GROUP BY
   component_id
 HAVING
   SUM(quantity) > 1;
 
+
 -- 3.9. SELECT JOIN
 -- a. LEFT JOIN двух таблиц и WHERE по одному из атрибутов
-SELECT 
-    s.company_name AS supplier_name,
-    s.contact_person,
-    s.phone AS supplier_phone,
-    sp.quantity AS supply_quantity 
-FROM 
-    supplier s
-LEFT JOIN 
-    supply sp ON s.supplier_id = sp.supplier_id
-WHERE 
-    s.company_name LIKE '%Inc%';
+SELECT
+  s.company_name AS supplier_name,
+  s.contact_person,
+  s.phone AS supplier_phone,
+  sp.quantity AS supply_quantity
+FROM
+  supplier s
+  LEFT JOIN supply sp ON s.supplier_id = sp.supplier_id
+WHERE
+  s.company_name LIKE '%Inc%';
+
 
 -- b. RIGHT JOIN. Получить такую же выборку, как и в 3.9 a
-SELECT 
-    s.company_name AS supplier_name,
-    s.contact_person,
-    s.phone AS supplier_phone,
-    sp.quantity AS supply_quantity 
-FROM 
-    supply sp
-RIGHT JOIN 
-    supplier s ON sp.supplier_id = s.supplier_id
-WHERE 
-    s.company_name LIKE '%Inc%';
+SELECT
+  s.company_name AS supplier_name,
+  s.contact_person,
+  s.phone AS supplier_phone,
+  sp.quantity AS supply_quantity
+FROM
+  supply sp
+  RIGHT JOIN supplier s ON sp.supplier_id = s.supplier_id
+WHERE
+  s.company_name LIKE '%Inc%';
+
 
 -- c. LEFT JOIN трех таблиц + WHERE по атрибуту из каждой таблицы
-SELECT 
-    s.company_name AS supplier_name,
-    s.contact_person,
-    c.name AS component_name,
-    c.type AS component_type,
-    sp.quantity AS supply_quantity,
-    sp.supply_date
-FROM 
-    supplier s
-LEFT JOIN 
-    supply sp ON s.supplier_id = sp.supplier_id
-LEFT JOIN 
-    component c ON sp.component_id = c.component_id
-WHERE 
-    s.company_name LIKE '%Inc%'
-    AND sp.quantity > 50
-    AND c.type = 'Видеокарта';      
+SELECT
+  s.company_name AS supplier_name,
+  s.contact_person,
+  c.name AS component_name,
+  c.type AS component_type,
+  sp.quantity AS supply_quantity,
+  sp.supply_date
+FROM
+  supplier s
+  LEFT JOIN supply sp ON s.supplier_id = sp.supplier_id
+  LEFT JOIN COMPONENT c ON sp.component_id = c.component_id
+WHERE
+  s.company_name LIKE '%Inc%'
+  AND sp.quantity > 50
+  AND c.type = 'Видеокарта';
+
 
 -- d. INNER JOIN двух таблиц
-SELECT 
-    s.company_name AS supplier_name,
-    s.contact_person,
-    s.phone AS supplier_phone,
-    sp.component_id,
-    sp.quantity AS supply_quantity,
-    sp.supply_date
-FROM 
-    supplier s
-INNER JOIN 
-    supply sp ON s.supplier_id = sp.supplier_id
-WHERE 
-    s.company_name LIKE '%Inc%';    
+SELECT
+  s.company_name AS supplier_name,
+  s.contact_person,
+  s.phone AS supplier_phone,
+  sp.component_id,
+  sp.quantity AS supply_quantity,
+  sp.supply_date
+FROM
+  supplier s
+  INNER JOIN supply sp ON s.supplier_id = sp.supplier_id
+WHERE
+  s.company_name LIKE '%Inc%';
+
 
 -- 3.10. Подзапросы
 -- a. Написать запрос с условием WHERE IN (подзапрос)
-SELECT 
-    company_name,
-    contact_person,
-    phone
-FROM 
-    supplier
-WHERE 
-    supplier_id IN (
-        SELECT supplier_id
-        FROM supply
-    );
+SELECT
+  company_name,
+  contact_person,
+  phone
+FROM
+  supplier
+WHERE
+  supplier_id IN (
+    SELECT
+      supplier_id
+    FROM
+      supply
+  );
+
 
 -- b. Написать запрос SELECT atr1, atr2, (подзапрос) FROM ...
-SELECT 
-    company_name,
-    contact_person,
-    (
-        SELECT COUNT(*)
-        FROM supply
-        WHERE supplier_id = supplier.supplier_id
-    ) AS supply_count
-FROM 
-    supplier;
+SELECT
+  company_name,
+  contact_person,
+  (
+    SELECT
+      COUNT(*)
+    FROM
+      supply
+    WHERE
+      supplier_id = supplier.supplier_id
+  ) AS supply_count
+FROM
+  supplier;
+
 
 -- c. Написать запрос вида SELECT * FROM (подзапрос)
-SELECT * 
-FROM (
-    SELECT 
-        company_name,
-        contact_person,
-        phone
-    FROM 
-        supplier
-    WHERE 
-        supplier_id < 3
-) AS filtered_suppliers;
+SELECT
+  *
+FROM
+  (
+    SELECT
+      company_name,
+      contact_person,
+      phone
+    FROM
+      supplier
+    WHERE
+      supplier_id < 3
+  ) AS filtered_suppliers;
+
 
 -- d. Написать запрос вида SELECT * FROM table JOIN (подзапрос) ON …
-SELECT 
-    s.company_name,
-    s.contact_person,
-    last_sp.component_id,
-    last_sp.quantity,
-    last_sp.supply_date
-FROM 
-    supplier s
-JOIN (
-    SELECT 
-        supplier_id,
-        component_id,
-        quantity,
-        supply_date
-    FROM 
-        supply
-    WHERE 
-        supply_date >= '2026-01-01'
-) AS last_sp ON s.supplier_id = last_sp.supplier_id;
+SELECT
+  s.company_name,
+  s.contact_person,
+  last_sp.component_id,
+  last_sp.quantity,
+  last_sp.supply_date
+FROM
+  supplier s
+  JOIN (
+    SELECT
+      supplier_id,
+      component_id,
+      quantity,
+      supply_date
+    FROM
+      supply
+    WHERE
+      supply_date >= '2026-01-01'
+  ) AS last_sp ON s.supplier_id = last_sp.supplier_id;
