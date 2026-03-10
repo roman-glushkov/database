@@ -141,7 +141,7 @@ SELECT
 FROM
   specifications
 ORDER BY
-  spec_name;
+  1;
 
 
 -- 3.6 Работа с датами
