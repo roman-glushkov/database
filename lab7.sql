@@ -684,49 +684,6 @@ GROUP BY s.name;
 +------------------+----------------------+-------+-------+-------+-------+-------+-------+
 20 rows in set (0.01 sec)
 
--- 3 вариант
-
-SELECT 
-    s.name AS ФИО,
-    ROUND(AVG(CASE WHEN sub.name = 'БД' THEN m.mark END), 0) AS 'БД',
-    ROUND(AVG(CASE WHEN sub.name = 'ООП' THEN m.mark END), 0) AS 'ООП',
-    ROUND(AVG(CASE WHEN sub.name = 'РП' THEN m.mark END), 0) AS 'РП',
-    ROUND(AVG(CASE WHEN sub.name = 'Физика' THEN m.mark END), 0) AS 'Физика',
-    ROUND(AVG(CASE WHEN sub.name = 'Экология' THEN m.mark END), 0) AS 'Экология'
-FROM student s
-JOIN `group` g ON s.id_group = g.id_group
-LEFT JOIN lesson l ON l.id_group = s.id_group
-LEFT JOIN subject sub ON l.id_subject = sub.id_subject
-LEFT JOIN mark m ON m.id_student = s.id_student AND m.id_lesson = l.id_lesson
-WHERE g.name = 'ВМ'
-GROUP BY s.name;
-
-+------------------------------------------------------------+------+--------+------+--------------+------------------+
-| ФИО                                                        | БД   | ООП    | РП   | Физика       | Экология         |
-+------------------------------------------------------------+------+--------+------+--------------+------------------+
-| Антипин Юлиан Тихонович                                    |    4 |      3 |    4 |            5 |                3 |
-| Григолюка Рената Остаповна                                 |    4 |      3 |    3 |         NULL |                4 |
-| Гришко Оксана Карловна                                     |    4 |      4 |    4 |            4 |                4 |
-| Достовалов Карп Демьянович                                 |    4 |      4 |    5 |            3 |                2 |
-| Завражнов Агап Якубович                                    |    4 |      4 |    4 |         NULL |                4 |
-| Зиновьева Мирослава Василиевна                             | NULL |   NULL | NULL |         NULL |             NULL |
-| Зинченко Ирина Ярославовна                                 |    4 |      4 |    4 |            4 |                3 |
-| Ишутин Изяслав Яковович                                    | NULL |   NULL | NULL |         NULL |             NULL |
-| Карапетян Андриян Панкратиевич                             |    4 |      4 |    3 |            4 |                5 |
-| Киселев Борис Матвеевич                                    |    4 |      3 |    3 |            5 |                3 |
-| Комарова Ева Агафоновна                                    |    3 |      3 |    5 |            3 |             NULL |
-| Локтева Римма Андрияновна                                  |    4 |      3 |    4 |            3 |                3 |
-| Менщикова Валентина Фомевна                                |    3 |      4 |    4 |            2 |             NULL |
-| Низовцова Роза Никитевна                                   | NULL |   NULL | NULL |         NULL |             NULL |
-| Пенкин Никанор Дмитриевич                                  |    4 |      3 |    3 |            3 |                4 |
-| Переверзев Онисим Никанорович                              |    3 |      3 |    4 |            4 |                4 |
-| Токмакова Зоя Тарасовна                                    |    4 |      3 |    3 |            4 |                2 |
-| Чегодаев Платон Платонович                                 | NULL |   NULL | NULL |         NULL |             NULL |
-| Элефтеров Владилен Куприянович                             |    4 |      4 |    4 |            4 |                3 |
-| Якурин Владислав Эрнстович                                 |    4 |      3 |    4 |            2 |                4 |
-+------------------------------------------------------------+------+--------+------+--------------+------------------+
-20 rows in set (0.03 sec)
-
 -- 6 Всем студентам специальности ПС, получившим оценки меньшие 5 по предмету БД до 12.05, повысить эти оценки на 1 балл.
 
 SELECT 
@@ -780,36 +737,6 @@ ORDER BY Фамилия;
 | БД             | Яшнова               |  NULL |  NULL |  NULL |  NULL |  NULL |     2 |  NULL |     4 |  NULL |     4 |  NULL |  NULL |  NULL |  NULL |     2 |  NULL |  NULL |  NULL |     5 |
 +----------------+----------------------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
 16 rows in set (0.01 sec)
-
-SELECT 
-    s.name AS ФИО,
-    GROUP_CONCAT(m.mark ORDER BY l.date SEPARATOR ', ') AS 'Оценки (до 12.05)'
-FROM student s
-LEFT JOIN lesson l ON l.id_group = s.id_group AND l.id_subject = (SELECT id_subject FROM subject WHERE name = 'БД') AND l.date < '2019-05-12'
-LEFT JOIN mark m ON m.id_student = s.id_student AND m.id_lesson = l.id_lesson
-WHERE s.id_group = (SELECT id_group FROM `group` WHERE name = 'ПС')
-  AND s.id_student NOT IN (
-      SELECT m2.id_student
-      FROM mark m2
-      JOIN lesson l2 ON m2.id_lesson = l2.id_lesson
-      WHERE l2.id_subject = (SELECT id_subject FROM subject WHERE name = 'БД')
-        AND l2.date < '2019-05-12'
-        AND m2.mark = 5
-  )
-GROUP BY s.name;
-
-+----------------------------------------------------------------+---------------------------+
-| ФИО                                                            | Оценки (до 12.05)         |
-+----------------------------------------------------------------+---------------------------+
-| Мазурина Екатерина Владиславовна                               | 3, 4, 4                   |
-| Мухаметова Эмма Арсентиевна                                    | 3, 3, 4, 4                |
-| Пелевин Всеслав Святославович                                  | 2, 4                      |
-| Трунина Ника Ильевна                                           | NULL                      |
-| Шагидзянов Семен Касьянович                                    | 4, 2, 3                   |
-| Эскин Ярослав Кондратиевич                                     | NULL                      |
-| Яшнова Вероника Владленовна                                    | 2, 4, 4, 2                |
-+----------------------------------------------------------------+---------------------------+
-7 rows in set (0.01 sec)
 
 UPDATE mark m
 JOIN lesson l ON m.id_lesson = l.id_lesson
