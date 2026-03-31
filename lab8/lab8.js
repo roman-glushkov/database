@@ -1,5 +1,4 @@
 const { MongoClient, ObjectId } = require("mongodb");
-
 const url = "mongodb://localhost:27017";
 const dbName = "lab8_variant2";
 
@@ -8,7 +7,6 @@ async function main() {
 
   try {
     await client.connect();
-
     const db = client.db(dbName);
 
     const hairdressers = db.collection("hairdressers");
@@ -133,6 +131,7 @@ async function main() {
     });
     const hairdresserElena = await hairdressers.findOne({
       name: "Елена Смирнова",
+      birthDate: new Date("1995-03-03"),
     });
     const serviceMan = await services.findOne({ name: "Мужская стрижка" });
     const serviceWoman = await services.findOne({ name: "Женская стрижка" });
@@ -215,3 +214,8 @@ async function main() {
 }
 
 main();
+
+/*
+C:\PGTU\DB\lab8>node lab8.js
+Complete
+*/
