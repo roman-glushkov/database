@@ -21,7 +21,7 @@ export interface Barber {
 export interface Client {
   id: number;
   discount: number | null;
-  firstVisit: string | null; // может быть null до первой работы
+  firstVisit: string | null;
   person: Person;
   _count?: { works: number };
 }
@@ -32,6 +32,7 @@ export interface Service {
   duration: number | null;
   price: number;
   category: string | null;
+  _count?: { works: number };
 }
 
 export interface Work {
@@ -44,6 +45,7 @@ export interface Work {
     person: Person;
   };
   service: Service;
+  review: Review | null; // 👈 добавляем review
 }
 
 export interface Stats {
@@ -52,4 +54,27 @@ export interface Stats {
   servicesCount: number;
   worksCount: number;
   recentWorks: Work[];
+}
+
+export interface Schedule {
+  id: number;
+  barberId: number;
+  dayOfWeek: number;
+  startTime: string | null;
+  endTime: string | null;
+  isDayOff: boolean;
+}
+
+export interface Review {
+  id: number;
+  rating: number;
+  text: string | null;
+  reviewDate: string;
+  work: {
+    id: number;
+    workDate: string;
+    client: { person: Person };
+    barber: { person: Person };
+    service: Service;
+  };
 }

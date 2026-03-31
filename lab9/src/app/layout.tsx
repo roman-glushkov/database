@@ -21,6 +21,7 @@ export default function RootLayout({
     { href: "/clients", label: "Клиенты" },
     { href: "/services", label: "Услуги" },
     { href: "/works", label: "Записи" },
+    { href: "/reviews", label: "Отзывы" },
     { href: "/analytics", label: "Аналитика" },
   ];
 

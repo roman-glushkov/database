@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import "../../forms.css";
 
-// Предопределенные специализации
-const specializations = [
+// Предопределенные категории
+const categories = [
   "Мужские стрижки",
   "Женские стрижки",
   "Окрашивание",
   "Укладка",
+  "Стрижка + укладка",
   "Коррекция бровей",
   "Лечение волос",
   "Уходовые процедуры",
@@ -20,61 +21,39 @@ const specializations = [
   "Свадебные прически",
 ];
 
-export default function CreateBarberPage() {
+export default function CreateServicePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    middleName: "",
-    birthDate: "",
-    phone: "",
-    email: "",
-    experience: "",
-    specialization: "",
-    // certificates: "", // 👈 УБЕРИТЕ ЭТУ СТРОКУ
+    name: "",
+    duration: "",
+    price: "",
+    category: "",
   });
 
   const fields = [
     {
-      name: "firstName",
-      label: "Имя",
+      name: "name",
+      label: "Название",
       type: "text",
       required: true,
-      placeholder: "Введите имя",
+      placeholder: "Например: Мужская стрижка",
     },
     {
-      name: "lastName",
-      label: "Фамилия",
-      type: "text",
-      required: true,
-      placeholder: "Введите фамилию",
-    },
-    {
-      name: "middleName",
-      label: "Отчество",
-      type: "text",
-      placeholder: "Введите отчество",
-    },
-    { name: "birthDate", label: "Дата рождения", type: "date" },
-    {
-      name: "phone",
-      label: "Телефон",
-      type: "tel",
-      placeholder: "+7 (999) 123-45-67",
-    },
-    {
-      name: "email",
-      label: "Email",
-      type: "email",
-      placeholder: "example@mail.com",
-    },
-    {
-      name: "experience",
-      label: "Опыт (лет)",
+      name: "duration",
+      label: "Длительность (мин)",
       type: "number",
-      placeholder: "Например: 5",
+      placeholder: "30",
       min: "0",
+    },
+    {
+      name: "price",
+      label: "Цена",
+      type: "number",
+      required: true,
+      placeholder: "1000",
+      min: "0",
+      step: "0.01",
     },
   ];
 
@@ -88,20 +67,20 @@ export default function CreateBarberPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/barbers", {
+      const res = await fetch("/api/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        alert("Парикмахер успешно добавлен!");
-        router.push("/barbers");
+        alert("Услуга успешно добавлена!");
+        router.push("/services");
       } else {
         const error = await res.json();
         alert("Ошибка: " + error.error);
       }
     } catch {
-      alert("Ошибка при добавлении парикмахера");
+      alert("Ошибка при добавлении услуги");
     } finally {
       setLoading(false);
     }
@@ -110,10 +89,10 @@ export default function CreateBarberPage() {
   return (
     <div className="form-container">
       <div className="form-card">
-        <Link href="/barbers" className="btn-back">
+        <Link href="/services" className="btn-back">
           ← Назад к списку
         </Link>
-        <h1 className="form-title">Добавить парикмахера</h1>
+        <h1 className="form-title">Добавить услугу</h1>
         <form onSubmit={handleSubmit}>
           {fields.map((field) => (
             <div key={field.name} className="form-group">
@@ -129,23 +108,24 @@ export default function CreateBarberPage() {
                 className="form-input"
                 placeholder={field.placeholder}
                 min={field.min}
+                step={field.step}
               />
             </div>
           ))}
 
-          {/* Select для специализации */}
+          {/* Select для категории */}
           <div className="form-group">
-            <label className="form-label">Специализация</label>
+            <label className="form-label">Категория</label>
             <select
-              name="specialization"
-              value={formData.specialization}
+              name="category"
+              value={formData.category}
               onChange={handleChange}
               className="form-input"
             >
-              <option value="">Выберите специализацию</option>
-              {specializations.map((spec) => (
-                <option key={spec} value={spec}>
-                  {spec}
+              <option value="">Выберите категорию</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
                 </option>
               ))}
             </select>
@@ -153,11 +133,11 @@ export default function CreateBarberPage() {
 
           <div className="button-group">
             <button type="submit" disabled={loading} className="btn-submit">
-              {loading ? "Добавление..." : "Добавить парикмахера"}
+              {loading ? "Добавление..." : "Добавить услугу"}
             </button>
             <button
               type="button"
-              onClick={() => router.push("/barbers")}
+              onClick={() => router.push("/services")}
               className="btn-cancel"
             >
               Отмена

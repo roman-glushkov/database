@@ -46,6 +46,11 @@ export async function POST(request: NextRequest) {
           clientId: parseInt(clientId),
           workDate: new Date(workDate),
         },
+        include: {
+          barber: { include: { person: true } },
+          client: { include: { person: true } },
+          service: true,
+        },
       });
 
       // Проверяем количество работ у клиента
@@ -53,7 +58,7 @@ export async function POST(request: NextRequest) {
         where: { clientId: parseInt(clientId) },
       });
 
-      // Если это первая работа клиента - обновляем firstVisit
+      // Если это первая работа - обновляем firstVisit
       if (workCount === 1) {
         await tx.client.update({
           where: { id: parseInt(clientId) },
