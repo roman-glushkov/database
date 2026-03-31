@@ -21,8 +21,9 @@ export interface Barber {
 export interface Client {
   id: number;
   discount: number | null;
-  firstVisit: string | null;
+  firstVisit: string | null; // может быть null до первой работы
   person: Person;
+  _count?: { works: number };
 }
 
 export interface Service {
