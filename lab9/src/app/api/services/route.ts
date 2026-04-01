@@ -54,3 +54,50 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// DELETE - удаление услуги
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID услуги обязателен" },
+        { status: 400 }
+      );
+    }
+
+    const serviceId = parseInt(id);
+
+    const service = await prisma.$transaction(async (tx) => {
+      const existingService = await tx.service.findUnique({
+        where: { id: serviceId },
+      });
+
+      if (!existingService) {
+        throw new Error("Услуга не найдена");
+      }
+
+      // Сначала удаляем все работы с этой услугой
+      await tx.work.deleteMany({
+        where: { serviceId: serviceId },
+      });
+
+      // Затем удаляем услугу
+      const deletedService = await tx.service.delete({
+        where: { id: serviceId },
+      });
+
+      return deletedService;
+    });
+
+    return NextResponse.json({ message: "Услуга удалена", service });
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    return NextResponse.json(
+      { error: "Ошибка при удалении услуги" },
+      { status: 500 }
+    );
+  }
+}
