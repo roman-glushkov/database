@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import "../../forms.css";
 
-// Предопределенные специализации
 const specializations = [
   "Мужские стрижки",
   "Женские стрижки",
@@ -20,9 +19,14 @@ const specializations = [
   "Свадебные прически",
 ];
 
-export default function CreateBarberPage() {
+export default function UpdateBarberPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const barberId = searchParams.get("id");
+
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -32,8 +36,45 @@ export default function CreateBarberPage() {
     email: "",
     experience: "",
     specialization: "",
-    certificates: "", // 👈 добавляем
+    certificates: "",
   });
+
+  useEffect(() => {
+    if (!barberId) {
+      setFetching(false);
+      setError("Парикмахер не выбран");
+      return;
+    }
+
+    fetch(`/api/barbers/${barberId}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Ошибка загрузки");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setFormData({
+          firstName: data?.person?.firstName || "",
+          lastName: data?.person?.lastName || "",
+          middleName: data?.person?.middleName || "",
+          birthDate: data?.person?.birthDate
+            ? data.person.birthDate.split("T")[0]
+            : "",
+          phone: data?.person?.phone || "",
+          email: data?.person?.email || "",
+          experience: data?.experience?.toString() || "",
+          specialization: data?.specialization || "",
+          certificates: data?.certificates || "",
+        });
+        setFetching(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Ошибка загрузки данных");
+        setFetching(false);
+      });
+  }, [barberId]);
 
   const fields = [
     {
@@ -90,20 +131,17 @@ export default function CreateBarberPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Формируем JSON для сертификатов, если есть
       let certificatesData = null;
       if (formData.certificates.trim()) {
         try {
-          // Пробуем распарсить как JSON
           certificatesData = JSON.parse(formData.certificates);
         } catch {
-          // Если не JSON, сохраняем как строку
           certificatesData = formData.certificates;
         }
       }
 
-      const res = await fetch("/api/barbers", {
-        method: "POST",
+      const res = await fetch(`/api/barbers/${barberId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
@@ -112,19 +150,48 @@ export default function CreateBarberPage() {
             : null,
         }),
       });
+
       if (res.ok) {
-        alert("Парикмахер успешно добавлен!");
+        alert("Парикмахер успешно обновлен!");
         router.push("/barbers");
       } else {
         const error = await res.json();
         alert("Ошибка: " + error.error);
       }
     } catch {
-      alert("Ошибка при добавлении парикмахера");
+      alert("Ошибка при обновлении парикмахера");
     } finally {
       setLoading(false);
     }
   };
+
+  if (!barberId) {
+    return (
+      <div className="form-container">
+        <div className="form-card">
+          <Link href="/barbers" className="btn-back">
+            ← Назад к списку
+          </Link>
+          <div className="loading">Парикмахер не выбран</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetching) return <div className="loading">Загрузка...</div>;
+
+  if (error) {
+    return (
+      <div className="form-container">
+        <div className="form-card">
+          <Link href="/barbers" className="btn-back">
+            ← Назад к списку
+          </Link>
+          <div className="loading">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="form-container">
@@ -132,7 +199,8 @@ export default function CreateBarberPage() {
         <Link href="/barbers" className="btn-back">
           ← Назад к списку
         </Link>
-        <h1 className="form-title">Добавить парикмахера</h1>
+        <h1 className="form-title">Редактировать парикмахера</h1>
+
         <form onSubmit={handleSubmit}>
           {fields.map((field) => (
             <div key={field.name} className="form-group">
@@ -152,7 +220,6 @@ export default function CreateBarberPage() {
             </div>
           ))}
 
-          {/* Select для специализации */}
           <div className="form-group">
             <label className="form-label">Специализация</label>
             <select
@@ -170,7 +237,6 @@ export default function CreateBarberPage() {
             </select>
           </div>
 
-          {/* Поле для сертификатов */}
           <div className="form-group">
             <label className="form-label">Сертификаты</label>
             <textarea
@@ -178,7 +244,7 @@ export default function CreateBarberPage() {
               value={formData.certificates}
               onChange={handleChange}
               className="form-textarea"
-              placeholder='Введите сертификаты в формате JSON или текст. Например: ["Лучший парикмахер 2023", "Мастер года"]'
+              placeholder='["Лучший парикмахер 2023", "Мастер года"]'
               rows={3}
             />
             <small
@@ -195,7 +261,7 @@ export default function CreateBarberPage() {
 
           <div className="button-group">
             <button type="submit" disabled={loading} className="btn-submit">
-              {loading ? "Добавление..." : "Добавить парикмахера"}
+              {loading ? "Сохранение..." : "Сохранить изменения"}
             </button>
             <button
               type="button"

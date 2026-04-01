@@ -2,20 +2,54 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Client } from "@/types";
 import "../tabs.css";
 
 export default function ClientsPage() {
+  const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchClients = async () => {
+    try {
+      const res = await fetch("/api/clients");
+      const data = await res.json();
+      setClients(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/clients")
-      .then((res) => res.json())
-      .then((data) => setClients(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchClients();
   }, []);
+
+  const handleDelete = async (
+    id: number,
+    lastName: string,
+    firstName: string
+  ) => {
+    if (
+      confirm(
+        `Удалить клиента ${lastName} ${firstName}? Все его записи также будут удалены.`
+      )
+    ) {
+      try {
+        const res = await fetch(`/api/clients?id=${id}`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Клиент удален");
+          fetchClients();
+        } else {
+          alert("Ошибка при удалении");
+        }
+      } catch {
+        alert("Ошибка при удалении");
+      }
+    }
+  };
 
   if (loading) return <div className="loading">Загрузка...</div>;
 
@@ -37,12 +71,13 @@ export default function ClientsPage() {
               <th>Скидка</th>
               <th>Первый визит</th>
               <th>Визитов</th>
+              <th>Действия</th>
             </tr>
           </thead>
           <tbody>
             {clients.map((c) => (
               <tr key={c.id}>
-                <td>
+                <td className="text-left">
                   {c.person.lastName} {c.person.firstName}{" "}
                   {c.person.middleName || ""}
                 </td>
@@ -59,6 +94,22 @@ export default function ClientsPage() {
                     : "-"}
                 </td>
                 <td>{c._count?.works || 0}</td>
+                <td className="action-buttons">
+                  <Link
+                    href={`/clients/update?id=${c.id}`}
+                    className="btn-edit"
+                  >
+                    ✏️
+                  </Link>
+                  <button
+                    onClick={() =>
+                      handleDelete(c.id, c.person.lastName, c.person.firstName)
+                    }
+                    className="btn-delete"
+                  >
+                    🗑️
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       email,
       experience,
       specialization,
+      certificates,
     } = body;
 
     if (!firstName || !lastName) {
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
           personId: person.id,
           experience: experience ? parseInt(experience) : null,
           specialization: specialization || null,
+          certificates: certificates || null,
         },
         include: {
           person: true,
@@ -80,6 +82,60 @@ export async function POST(request: NextRequest) {
     console.error("Error creating barber:", error);
     return NextResponse.json(
       { error: "Ошибка при создании парикмахера" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - удаление парикмахера
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID парикмахера обязателен" },
+        { status: 400 }
+      );
+    }
+
+    const barberId = parseInt(id);
+
+    const barber = await prisma.$transaction(async (tx) => {
+      // Находим парикмахера
+      const existingBarber = await tx.barber.findUnique({
+        where: { id: barberId },
+        include: { person: true },
+      });
+
+      if (!existingBarber) {
+        throw new Error("Парикмахер не найден");
+      }
+
+      // Удаляем расписание парикмахера
+      await tx.schedule.deleteMany({
+        where: { barberId: barberId },
+      });
+
+      // Удаляем парикмахера
+      await tx.barber.delete({
+        where: { id: barberId },
+      });
+
+      // Удаляем человека
+      await tx.person.delete({
+        where: { id: existingBarber.personId },
+      });
+
+      return existingBarber;
+    });
+
+    return NextResponse.json({ message: "Парикмахер удален", barber });
+  } catch (error) {
+    console.error("Error deleting barber:", error);
+    return NextResponse.json(
+      { error: "Ошибка при удалении парикмахера" },
       { status: 500 }
     );
   }

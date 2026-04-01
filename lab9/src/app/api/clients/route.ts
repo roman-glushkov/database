@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         data: {
           personId: person.id,
           discount: discount ? parseInt(discount) : 0,
-          firstVisit: null, // при создании клиента firstVisit = null
+          firstVisit: null,
         },
         include: {
           person: true,
@@ -76,6 +76,59 @@ export async function POST(request: NextRequest) {
     console.error("Error creating client:", error);
     return NextResponse.json(
       { error: "Ошибка при создании клиента" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - удаление клиента
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID клиента обязателен" },
+        { status: 400 }
+      );
+    }
+
+    const clientId = parseInt(id);
+
+    const client = await prisma.$transaction(async (tx) => {
+      const existingClient = await tx.client.findUnique({
+        where: { id: clientId },
+        include: { person: true },
+      });
+
+      if (!existingClient) {
+        throw new Error("Клиент не найден");
+      }
+
+      // Удаляем все работы клиента
+      await tx.work.deleteMany({
+        where: { clientId: clientId },
+      });
+
+      // Удаляем клиента
+      await tx.client.delete({
+        where: { id: clientId },
+      });
+
+      // Удаляем человека
+      await tx.person.delete({
+        where: { id: existingClient.personId },
+      });
+
+      return existingClient;
+    });
+
+    return NextResponse.json({ message: "Клиент удален", client });
+  } catch (error) {
+    console.error("Error deleting client:", error);
+    return NextResponse.json(
+      { error: "Ошибка при удалении клиента" },
       { status: 500 }
     );
   }

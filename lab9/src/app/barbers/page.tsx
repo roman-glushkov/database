@@ -3,17 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Barber } from "@/types";
+import { Barber, Schedule } from "@/types";
 import "../tabs.css";
-
-interface Schedule {
-  id: number;
-  barberId: number;
-  dayOfWeek: number;
-  startTime: string | null;
-  endTime: string | null;
-  isDayOff: boolean;
-}
 
 const days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 
@@ -23,10 +14,7 @@ export default function BarbersPage() {
   const [schedules, setSchedules] = useState<Record<number, Schedule[]>>({});
   const [loading, setLoading] = useState(true);
   const [showSchedule, setShowSchedule] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetchBarbers();
-  }, []);
+  const [showCertificates, setShowCertificates] = useState<number | null>(null);
 
   const fetchBarbers = async () => {
     try {
@@ -57,6 +45,10 @@ export default function BarbersPage() {
     }
   };
 
+  useEffect(() => {
+    fetchBarbers();
+  }, []);
+
   const getScheduleText = (barberId: number) => {
     const barberSchedule = schedules[barberId] || [];
     if (barberSchedule.length === 0) return "Не указано";
@@ -65,8 +57,43 @@ export default function BarbersPage() {
     return `${workingDays.length} рабочих дней`;
   };
 
+  const handleScheduleClick = (barberId: number) => {
+    setShowSchedule(barberId);
+  };
+
   const handleAddDay = (barberId: number) => {
     router.push(`/schedules/create?barberId=${barberId}`);
+  };
+
+  const parseCertificates = (certificates: string | null) => {
+    if (!certificates) return null;
+    try {
+      const parsed = JSON.parse(certificates);
+      if (Array.isArray(parsed)) return parsed;
+      return [parsed];
+    } catch {
+      return [certificates];
+    }
+  };
+
+  const handleDelete = async (
+    id: number,
+    lastName: string,
+    firstName: string
+  ) => {
+    if (confirm(`Удалить парикмахера ${lastName} ${firstName}?`)) {
+      try {
+        const res = await fetch(`/api/barbers?id=${id}`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Парикмахер удален");
+          fetchBarbers();
+        } else {
+          alert("Ошибка при удалении");
+        }
+      } catch {
+        alert("Ошибка при удалении");
+      }
+    }
   };
 
   if (loading) return <div className="loading">Загрузка...</div>;
@@ -88,18 +115,19 @@ export default function BarbersPage() {
               <th>Телефон</th>
               <th>Опыт</th>
               <th>Специализация</th>
+              <th>Сертификаты</th>
               <th>Расписание</th>
               <th>Действия</th>
             </tr>
           </thead>
           <tbody>
             {barbers.map((b) => {
-              const barberSchedules = schedules[b.id] || [];
-              const existingDays = barberSchedules.map((s) => s.dayOfWeek);
+              const certificates = parseCertificates(b.certificates);
+              const hasCertificates = certificates && certificates.length > 0;
 
               return (
                 <tr key={b.id}>
-                  <td>
+                  <td className="text-left">
                     {b.person.lastName} {b.person.firstName}{" "}
                     {b.person.middleName || ""}
                   </td>
@@ -112,43 +140,45 @@ export default function BarbersPage() {
                   <td>{b.experience ? `${b.experience} лет` : "-"}</td>
                   <td>{b.specialization || "-"}</td>
                   <td>
-                    <span className="badge badge-info">
-                      {getScheduleText(b.id)}
-                    </span>
+                    {hasCertificates ? (
+                      <button
+                        onClick={() => setShowCertificates(b.id)}
+                        className="btn-certificate"
+                      >
+                        📜 {certificates.length}
+                      </button>
+                    ) : (
+                      <span className="badge badge-warning">Нет</span>
+                    )}
                   </td>
                   <td>
                     <button
-                      onClick={() =>
-                        setShowSchedule(showSchedule === b.id ? null : b.id)
-                      }
-                      className="btn btn-sm"
-                      style={{
-                        background: "#2563eb",
-                        color: "white",
-                        padding: "0.25rem 0.75rem",
-                        fontSize: "0.75rem",
-                        cursor: "pointer",
-                        border: "none",
-                        borderRadius: "0.375rem",
-                      }}
+                      onClick={() => handleScheduleClick(b.id)}
+                      className="btn-schedule-link"
                     >
-                      {showSchedule === b.id ? "Скрыть" : "Показать"}
+                      <span className="badge badge-info schedule-badge">
+                        {getScheduleText(b.id)}
+                      </span>
                     </button>
-                    <button
-                      onClick={() => handleAddDay(b.id)}
-                      className="btn btn-sm"
-                      style={{
-                        background: "#10b981",
-                        color: "white",
-                        padding: "0.25rem 0.75rem",
-                        fontSize: "0.75rem",
-                        marginLeft: "0.5rem",
-                        cursor: "pointer",
-                        border: "none",
-                        borderRadius: "0.375rem",
-                      }}
+                  </td>
+                  <td className="action-buttons">
+                    <Link
+                      href={`/barbers/update?id=${b.id}`}
+                      className="btn-edit"
                     >
-                      + день
+                      ✏️
+                    </Link>
+                    <button
+                      onClick={() =>
+                        handleDelete(
+                          b.id,
+                          b.person.lastName,
+                          b.person.firstName
+                        )
+                      }
+                      className="btn-delete"
+                    >
+                      🗑️
                     </button>
                   </td>
                 </tr>
@@ -212,7 +242,7 @@ export default function BarbersPage() {
                   </tbody>
                 </table>
               ) : (
-                <p>Расписание не указано. Нажмите "+ день" чтобы добавить</p>
+                <p>Расписание не указано. Нажмите + день чтобы добавить</p>
               )}
             </div>
             <div className="modal-footer">
@@ -221,6 +251,66 @@ export default function BarbersPage() {
                 className="btn btn-primary"
               >
                 + Добавить день
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно с сертификатами */}
+      {showCertificates && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowCertificates(null)}
+        >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                Сертификаты -{" "}
+                {
+                  barbers.find((b) => b.id === showCertificates)?.person
+                    .lastName
+                }{" "}
+                {
+                  barbers.find((b) => b.id === showCertificates)?.person
+                    .firstName
+                }
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowCertificates(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              {(() => {
+                const barber = barbers.find((b) => b.id === showCertificates);
+                const certificates = parseCertificates(
+                  barber?.certificates || null
+                );
+
+                if (!certificates || certificates.length === 0) {
+                  return <p>Нет сертификатов</p>;
+                }
+
+                return (
+                  <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
+                    {certificates.map((cert: string, idx: number) => (
+                      <li key={idx} style={{ marginBottom: "0.5rem" }}>
+                        {cert}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </div>
+            <div className="modal-footer">
+              <button
+                onClick={() => setShowCertificates(null)}
+                className="btn btn-secondary"
+              >
+                Закрыть
               </button>
             </div>
           </div>

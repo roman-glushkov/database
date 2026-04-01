@@ -14,6 +14,7 @@ export interface Barber {
   id: number;
   experience: number | null;
   specialization: string | null;
+  certificates: string | null; // 👈 добавляем
   person: Person;
   _count?: { works: number };
 }

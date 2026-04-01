@@ -1,69 +1,98 @@
-/* Общие стили для страниц с таблицами */
+/* =========================
+   Контейнер страницы
+========================= */
 .tabs-container {
-  padding: 2rem 1rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .tabs-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .tabs-title {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.75rem;
+  font-weight: 700;
   color: #111827;
 }
 
-/* Таблицы */
+/* =========================
+   Таблица
+========================= */
 .table-wrapper {
-  overflow-x: auto;
   background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
+  overflow: hidden;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
 }
 
 .table th {
-  text-align: left;
-  padding: 0.75rem 1rem;
-  background: #f9fafb;
-  font-weight: 500;
-  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.75rem;
   font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-align: center;
 }
 
 .table td {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem;
   font-size: 0.875rem;
   color: #111827;
+  text-align: center;
+}
+
+/* ✅ ФИКС ЛИНИИ (одна, на всю ширину) */
+.table tr + tr {
+  border-top: 1px solid #e5e7eb;
+}
+
+.table tr {
+  transition: background 0.2s;
 }
 
 .table tr:hover {
   background: #f9fafb;
 }
 
-/* Кнопки */
+/* Выравнивания */
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.table th:last-child,
+.table td:last-child {
+  text-align: left;
+}
+
+/* =========================
+   Кнопки
+========================= */
 .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
   font-size: 0.875rem;
   text-decoration: none;
-  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -73,23 +102,75 @@
 
 .btn-primary:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
 }
 
-/* Загрузка */
+/* Маленькие кнопки */
+.btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-sm:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* Контейнер кнопок */
+.action-buttons {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+/* =========================
+   Badge
+========================= */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+.badge-warning {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+/* =========================
+   Загрузка
+========================= */
 .loading {
   text-align: center;
-  padding: 2rem;
+  padding: 3rem;
   color: #6b7280;
-  font-size: 1.125rem;
+  font-size: 1.1rem;
 }
 
-/* Модальное окно */
+/* =========================
+   Модалка
+========================= */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -99,50 +180,54 @@
 
 .modal-content {
   background: white;
-  border-radius: 0.75rem;
-  max-width: 500px;
+  border-radius: 1rem;
   width: 90%;
+  max-width: 520px;
   max-height: 80vh;
   overflow: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
 }
 
 .modal-header h3 {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   cursor: pointer;
   color: #6b7280;
 }
 
 .modal-close:hover {
-  color: #374151;
+  color: #111827;
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-top: 1px solid #e5e7eb;
   display: flex;
   justify-content: flex-end;
 }
 
+/* =========================
+   Таблица расписания
+========================= */
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
@@ -151,19 +236,158 @@
 .schedule-table th,
 .schedule-table td {
   padding: 0.5rem;
-  text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  text-align: left;
 }
 
 .schedule-table th {
-  font-weight: 500;
+  font-size: 0.75rem;
   color: #6b7280;
+  font-weight: 600;
 }
 
-.btn-sm {
-  padding: 0.25rem 0.75rem;
+/* =========================
+   Кнопки действий (убрал дубли)
+========================= */
+.btn-edit,
+.btn-delete,
+.btn-certificate,
+.btn-schedule,
+.btn-day {
+  padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   border-radius: 0.375rem;
   cursor: pointer;
   border: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-edit {
+  background: #f59e0b;
+  color: white;
+}
+.btn-delete {
+  background: #ef4444;
+  color: white;
+}
+.btn-certificate {
+  background: #8b5cf6;
+  color: white;
+}
+.btn-schedule {
+  background: #2563eb;
+  color: white;
+}
+.btn-day {
+  background: #10b981;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #d97706;
+}
+.btn-delete:hover {
+  background: #dc2626;
+}
+.btn-certificate:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+.btn-schedule:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+.btn-day:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+/* Список сертификатов */
+.certificates-list {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.certificates-list li {
+  margin-bottom: 0.5rem;
+  list-style: none;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.certificates-list li::before {
+  content: "🏆";
+  position: absolute;
+  left: 0;
+}
+
+/* Кнопка закрыть */
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+/* =========================
+   Адаптивность
+========================= */
+@media (max-width: 768px) {
+  .tabs-container {
+    padding: 0 0.5rem;
+  }
+
+  .action-buttons {
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm,
+  .btn-certificate,
+  .btn-edit,
+  .btn-delete,
+  .btn-schedule,
+  .btn-day {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+  }
+
+  .tabs-title {
+    font-size: 1.25rem;
+  }
+}
+
+.btn-schedule-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.schedule-badge {
+  display: inline-block;
+  width: 100%;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.schedule-badge:hover {
+  opacity: 0.8;
 }
