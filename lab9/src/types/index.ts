@@ -79,3 +79,21 @@ export interface Review {
     service: Service;
   };
 }
+
+export interface Appointment {
+  id: number;
+  clientId: number;
+  barberId: number;
+  serviceId: number;
+  date: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  client: {
+    person: Person;
+  };
+  barber: {
+    person: Person;
+  };
+  service: Service;
+}

@@ -391,3 +391,20 @@
 .schedule-badge:hover {
   opacity: 0.8;
 }
+
+.btn-review {
+  background: #10b981;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn-review:hover {
+  background: #7c3aed;
+}

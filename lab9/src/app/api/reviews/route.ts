@@ -67,3 +67,32 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// DELETE - удаление отзыва
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID отзыва обязателен" },
+        { status: 400 }
+      );
+    }
+
+    const reviewId = parseInt(id);
+
+    const review = await prisma.review.delete({
+      where: { id: reviewId },
+    });
+
+    return NextResponse.json({ message: "Отзыв удален", review });
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return NextResponse.json(
+      { error: "Ошибка при удалении отзыва" },
+      { status: 500 }
+    );
+  }
+}

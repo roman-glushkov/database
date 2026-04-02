@@ -23,9 +23,7 @@ export default function WorksPage() {
     <div className="tabs-container">
       <div className="tabs-header">
         <h1 className="tabs-title">Выполненные работы</h1>
-        <Link href="/works/create" className="btn btn-primary">
-          + Добавить
-        </Link>
+        {/* Убрали кнопку + Добавить */}
       </div>
       <div className="table-wrapper">
         <table className="table">
@@ -66,14 +64,7 @@ export default function WorksPage() {
                     ) : (
                       <Link
                         href={`/reviews/create?workId=${w.id}`}
-                        className="btn btn-sm"
-                        style={{
-                          background: "#10b981",
-                          color: "white",
-                          padding: "0.25rem 0.5rem",
-                          textDecoration: "none",
-                          borderRadius: "0.375rem",
-                        }}
+                        className="btn-review"
                       >
                         + отзыв
                       </Link>

@@ -20,7 +20,8 @@ export default function RootLayout({
     { href: "/barbers", label: "Парикмахеры" },
     { href: "/clients", label: "Клиенты" },
     { href: "/services", label: "Услуги" },
-    { href: "/works", label: "Записи" },
+    { href: "/appointments", label: "Запись" },
+    { href: "/works", label: "Выполненные работы" },
     { href: "/reviews", label: "Отзывы" },
     { href: "/analytics", label: "Аналитика" },
   ];

@@ -2,20 +2,46 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Review } from "@/types";
 import "../tabs.css";
 
 export default function ReviewsPage() {
+  const router = useRouter();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews");
+      const data = await res.json();
+      setReviews(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/reviews")
-      .then((res) => res.json())
-      .then((data) => setReviews(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchReviews();
   }, []);
+
+  const handleDelete = async (id: number, clientName: string) => {
+    if (confirm(`Удалить отзыв от ${clientName}?`)) {
+      try {
+        const res = await fetch(`/api/reviews?id=${id}`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Отзыв удален");
+          fetchReviews();
+        } else {
+          alert("Ошибка при удалении");
+        }
+      } catch {
+        alert("Ошибка при удалении");
+      }
+    }
+  };
 
   if (loading) return <div className="loading">Загрузка...</div>;
 
@@ -23,6 +49,9 @@ export default function ReviewsPage() {
     <div className="tabs-container">
       <div className="tabs-header">
         <h1 className="tabs-title">Отзывы</h1>
+        <Link href="/reviews/create" className="btn btn-primary">
+          + Добавить
+        </Link>
       </div>
       <div className="table-wrapper">
         <table className="table">
@@ -34,12 +63,13 @@ export default function ReviewsPage() {
               <th>Оценка</th>
               <th>Отзыв</th>
               <th>Дата</th>
+              <th>Действия</th>
             </tr>
           </thead>
           <tbody>
             {reviews.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center">
+                <td colSpan={7} className="text-center">
                   Нет отзывов
                 </td>
               </tr>
@@ -65,6 +95,25 @@ export default function ReviewsPage() {
                     {r.text || "-"}
                   </td>
                   <td>{new Date(r.reviewDate).toLocaleDateString("ru-RU")}</td>
+                  <td className="action-buttons">
+                    <Link
+                      href={`/reviews/update?id=${r.id}`}
+                      className="btn-edit"
+                    >
+                      ✏️
+                    </Link>
+                    <button
+                      onClick={() =>
+                        handleDelete(
+                          r.id,
+                          `${r.work.client.person.lastName} ${r.work.client.person.firstName}`
+                        )
+                      }
+                      className="btn-delete"
+                    >
+                      🗑️
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

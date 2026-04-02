@@ -137,3 +137,155 @@
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
+
+/* Индикатор шагов */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.step-num {
+  width: 2rem;
+  height: 2rem;
+  background: #e5e7eb;
+  color: #6b7280;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.step.active .step-num {
+  background: #2563eb;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.step.active .step-label {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Шаги */
+.step-content {
+  min-height: 300px;
+}
+
+/* Инфо блок */
+.info-box {
+  background: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.confirm-box {
+  background: #f0fdf4;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #bbf7d0;
+}
+
+.confirm-box p {
+  margin-bottom: 0.5rem;
+}
+
+.error-box {
+  background: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Кнопки навигации */
+.btn-next,
+.btn-back-step {
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.875rem;
+}
+
+.btn-next {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-next:hover {
+  background: #1d4ed8;
+}
+
+.btn-next:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-back-step {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-back-step:hover {
+  background: #d1d5db;
+}
+
+/* Слоты времени */
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.time-slot {
+  padding: 0.5rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.time-slot:hover {
+  background: #e5e7eb;
+}
+
+.time-slot.selected {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+@media (max-width: 640px) {
+  .time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .step-label {
+    display: none;
+  }
+}
