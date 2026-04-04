@@ -61,7 +61,27 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Стили для select в темной теме */
+[data-theme="dark"] select,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] select.form-input {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
 
+/* Для опций внутри select */
+[data-theme="dark"] select option,
+[data-theme="dark"] .form-select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+/* Для всех select на странице */
+[data-theme="dark"] select:focus,
+[data-theme="dark"] .form-select:focus {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
 body {
   background: var(--bg-dark);
   background-image: radial-gradient(

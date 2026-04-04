@@ -2,20 +2,50 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Work } from "@/types";
 import "../tabs.css";
 
 export default function WorksPage() {
+  const router = useRouter();
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchWorks = async () => {
+    try {
+      const res = await fetch("/api/works");
+      const data = await res.json();
+      setWorks(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/works")
-      .then((res) => res.json())
-      .then((data) => setWorks(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchWorks();
   }, []);
+
+  const handleDelete = async (
+    id: number,
+    clientName: string,
+    serviceName: string
+  ) => {
+    if (confirm(`Удалить работу "${serviceName}" для клиента ${clientName}?`)) {
+      try {
+        const res = await fetch(`/api/works?id=${id}`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Работа удалена");
+          fetchWorks();
+        } else {
+          alert("Ошибка при удалении");
+        }
+      } catch {
+        alert("Ошибка при удалении");
+      }
+    }
+  };
 
   if (loading) return <div className="loading">Загрузка...</div>;
 
@@ -23,7 +53,6 @@ export default function WorksPage() {
     <div className="tabs-container">
       <div className="tabs-header">
         <h1 className="tabs-title">Выполненные работы</h1>
-        {/* Убрали кнопку + Добавить */}
       </div>
       <div className="table-wrapper">
         <table className="table">
@@ -35,12 +64,13 @@ export default function WorksPage() {
               <th>Услуга</th>
               <th>Цена</th>
               <th>Отзыв</th>
+              <th>Действия</th>
             </tr>
           </thead>
           <tbody>
             {works.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center">
+                <td colSpan={7} className="text-center">
                   Нет выполненных работ
                 </td>
               </tr>
@@ -69,6 +99,26 @@ export default function WorksPage() {
                         + отзыв
                       </Link>
                     )}
+                  </td>
+                  <td className="action-buttons">
+                    <Link
+                      href={`/works/update?id=${w.id}`}
+                      className="btn-edit"
+                    >
+                      ✏️
+                    </Link>
+                    <button
+                      onClick={() =>
+                        handleDelete(
+                          w.id,
+                          `${w.client.person.firstName} ${w.client.person.lastName}`,
+                          w.service.name
+                        )
+                      }
+                      className="btn-delete"
+                    >
+                      🗑️
+                    </button>
                   </td>
                 </tr>
               ))

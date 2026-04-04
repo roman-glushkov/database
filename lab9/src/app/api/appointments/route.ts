@@ -124,29 +124,44 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const appointment = await prisma.appointment.update({
+    // Получаем запись до удаления
+    const existingAppointment = await prisma.appointment.findUnique({
       where: { id: parseInt(id) },
-      data: { status },
       include: {
-        client: { include: { person: true } },
-        barber: { include: { person: true } },
+        client: true,
+        barber: true,
         service: true,
       },
     });
+
+    if (!existingAppointment) {
+      return NextResponse.json({ error: "Запись не найдена" }, { status: 404 });
+    }
 
     // Если статус "completed" - создаем запись в Work
     if (status === "completed") {
       await prisma.work.create({
         data: {
-          clientId: appointment.clientId,
-          barberId: appointment.barberId,
-          serviceId: appointment.serviceId,
-          workDate: new Date(),
+          clientId: existingAppointment.clientId,
+          barberId: existingAppointment.barberId,
+          serviceId: existingAppointment.serviceId,
+          workDate: existingAppointment.date,
         },
       });
     }
 
-    return NextResponse.json(appointment);
+    // Удаляем запись из Appointment (независимо от статуса)
+    await prisma.appointment.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return NextResponse.json({
+      message:
+        status === "completed"
+          ? "Запись выполнена и перенесена в работы"
+          : "Запись отменена",
+      success: true,
+    });
   } catch (error) {
     console.error("Error updating appointment:", error);
     return NextResponse.json(

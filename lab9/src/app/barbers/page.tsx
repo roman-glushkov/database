@@ -13,33 +13,35 @@ export default function BarbersPage() {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [schedules, setSchedules] = useState<Record<number, Schedule[]>>({});
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState("");
   const [showSchedule, setShowSchedule] = useState<number | null>(null);
   const [showCertificates, setShowCertificates] = useState<number | null>(null);
 
-  const fetchBarbers = async () => {
+  const fetchBarbers = async (searchTerm: string = "") => {
+    setLoading(true);
     try {
       const [barbersRes, schedulesRes] = await Promise.all([
-        fetch("/api/barbers"),
+        fetch(`/api/barbers?search=${encodeURIComponent(searchTerm)}`),
         fetch("/api/schedules"),
       ]);
 
       const barbersData = await barbersRes.json();
       const schedulesData = await schedulesRes.json();
 
-      setBarbers(barbersData);
+      setBarbers(Array.isArray(barbersData) ? barbersData : []);
 
-      const grouped = schedulesData.reduce(
-        (acc: Record<number, Schedule[]>, s: Schedule) => {
-          if (!acc[s.barberId]) acc[s.barberId] = [];
-          acc[s.barberId].push(s);
-          return acc;
-        },
-        {}
-      );
+      const grouped = (
+        Array.isArray(schedulesData) ? schedulesData : []
+      ).reduce((acc: Record<number, Schedule[]>, s: Schedule) => {
+        if (!acc[s.barberId]) acc[s.barberId] = [];
+        acc[s.barberId].push(s);
+        return acc;
+      }, {});
 
       setSchedules(grouped);
     } catch (err) {
       console.error(err);
+      setBarbers([]);
     } finally {
       setLoading(false);
     }
@@ -48,6 +50,12 @@ export default function BarbersPage() {
   useEffect(() => {
     fetchBarbers();
   }, []);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      fetchBarbers(searchInput);
+    }
+  };
 
   const getScheduleText = (barberId: number) => {
     const barberSchedule = schedules[barberId] || [];
@@ -86,7 +94,7 @@ export default function BarbersPage() {
         const res = await fetch(`/api/barbers?id=${id}`, { method: "DELETE" });
         if (res.ok) {
           alert("Парикмахер удален");
-          fetchBarbers();
+          fetchBarbers(searchInput);
         } else {
           alert("Ошибка при удалении");
         }
@@ -102,9 +110,19 @@ export default function BarbersPage() {
     <div className="tabs-container">
       <div className="tabs-header">
         <h1 className="tabs-title">Парикмахеры</h1>
-        <Link href="/barbers/create" className="btn btn-primary">
-          + Добавить
-        </Link>
+        <div className="header-actions">
+          <input
+            type="text"
+            placeholder="🔍 Поиск... (нажмите Enter)"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="search-input"
+          />
+          <Link href="/barbers/create" className="btn btn-primary">
+            + Добавить
+          </Link>
+        </div>
       </div>
       <div className="table-wrapper">
         <table className="table">
@@ -121,69 +139,81 @@ export default function BarbersPage() {
             </tr>
           </thead>
           <tbody>
-            {barbers.map((b) => {
-              const certificates = parseCertificates(b.certificates);
-              const hasCertificates = certificates && certificates.length > 0;
+            {barbers.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center">
+                  {searchInput ? "Ничего не найдено" : "Нет парикмахеров"}
+                </td>
+              </tr>
+            ) : (
+              barbers.map((b) => {
+                const certificates = parseCertificates(b.certificates);
+                const hasCertificates = certificates && certificates.length > 0;
 
-              return (
-                <tr key={b.id}>
-                  <td className="text-left">
-                    {b.person.lastName} {b.person.firstName}{" "}
-                    {b.person.middleName || ""}
-                  </td>
-                  <td>
-                    {b.person.birthDate
-                      ? new Date(b.person.birthDate).toLocaleDateString("ru-RU")
-                      : "-"}
-                  </td>
-                  <td>{b.person.phone || "-"}</td>
-                  <td>{b.experience ? `${b.experience} лет` : "-"}</td>
-                  <td>{b.specialization || "-"}</td>
-                  <td>
-                    {hasCertificates ? (
+                return (
+                  <tr key={b.id}>
+                    <td className="text-left">
+                      {b.person.lastName} {b.person.firstName}{" "}
+                      {b.person.middleName || ""}
+                    </td>
+                    <td className="text-center">
+                      {b.person.birthDate
+                        ? new Date(b.person.birthDate).toLocaleDateString(
+                            "ru-RU"
+                          )
+                        : "-"}
+                    </td>
+                    <td className="text-center">{b.person.phone || "-"}</td>
+                    <td className="text-center">
+                      {b.experience ? `${b.experience} лет` : "-"}
+                    </td>
+                    <td className="text-center">{b.specialization || "-"}</td>
+                    <td className="text-center">
+                      {hasCertificates ? (
+                        <button
+                          onClick={() => setShowCertificates(b.id)}
+                          className="btn-certificate"
+                        >
+                          📜 {certificates.length}
+                        </button>
+                      ) : (
+                        <span className="badge badge-warning">Нет</span>
+                      )}
+                    </td>
+                    <td className="text-center">
                       <button
-                        onClick={() => setShowCertificates(b.id)}
-                        className="btn-certificate"
+                        onClick={() => handleScheduleClick(b.id)}
+                        className="btn-schedule-link"
                       >
-                        📜 {certificates.length}
+                        <span className="badge badge-info schedule-badge">
+                          {getScheduleText(b.id)}
+                        </span>
                       </button>
-                    ) : (
-                      <span className="badge badge-warning">Нет</span>
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleScheduleClick(b.id)}
-                      className="btn-schedule-link"
-                    >
-                      <span className="badge badge-info schedule-badge">
-                        {getScheduleText(b.id)}
-                      </span>
-                    </button>
-                  </td>
-                  <td className="action-buttons">
-                    <Link
-                      href={`/barbers/update?id=${b.id}`}
-                      className="btn-edit"
-                    >
-                      ✏️
-                    </Link>
-                    <button
-                      onClick={() =>
-                        handleDelete(
-                          b.id,
-                          b.person.lastName,
-                          b.person.firstName
-                        )
-                      }
-                      className="btn-delete"
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                    </td>
+                    <td className="action-buttons">
+                      <Link
+                        href={`/barbers/update?id=${b.id}`}
+                        className="btn-edit"
+                      >
+                        ✏️
+                      </Link>
+                      <button
+                        onClick={() =>
+                          handleDelete(
+                            b.id,
+                            b.person.lastName,
+                            b.person.firstName
+                          )
+                        }
+                        className="btn-delete"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -242,7 +272,9 @@ export default function BarbersPage() {
                   </tbody>
                 </table>
               ) : (
-                <p>Расписание не указано. Нажмите + день чтобы добавить</p>
+                <p>
+                  Расписание не указано. Нажмите редактировать чтобы добавить
+                </p>
               )}
             </div>
             <div className="modal-footer">
@@ -250,7 +282,7 @@ export default function BarbersPage() {
                 onClick={() => handleAddDay(showSchedule)}
                 className="btn btn-primary"
               >
-                + Добавить день
+                Редактировать
               </button>
             </div>
           </div>

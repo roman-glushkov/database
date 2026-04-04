@@ -44,7 +44,11 @@ export default function AppointmentsPage() {
   }, []);
 
   const handleComplete = async (id: number) => {
-    if (confirm("Отметить запись как выполненную?")) {
+    if (
+      confirm(
+        "Отметить запись как выполненную? Она переместится в выполненные работы."
+      )
+    ) {
       try {
         const res = await fetch(`/api/appointments?id=${id}`, {
           method: "PUT",
@@ -52,8 +56,8 @@ export default function AppointmentsPage() {
           body: JSON.stringify({ status: "completed" }),
         });
         if (res.ok) {
-          alert("Запись отмечена как выполненная");
-          fetchAppointments();
+          alert("Запись выполнена и перенесена в работы");
+          fetchAppointments(); // обновляем список (запись уже удалена)
           router.push("/works");
         } else {
           alert("Ошибка");
@@ -74,7 +78,7 @@ export default function AppointmentsPage() {
         });
         if (res.ok) {
           alert("Запись отменена");
-          fetchAppointments();
+          fetchAppointments(); // обновляем список (запись удалена)
         } else {
           alert("Ошибка");
         }

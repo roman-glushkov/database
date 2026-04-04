@@ -120,18 +120,72 @@ export default function CreateAppointmentPage() {
   }, [selectedCategory, services]);
 
   // Обновляем парикмахеров при выборе услуги
+  // Обновляем парикмахеров при выборе услуги
   useEffect(() => {
     if (selectedService) {
-      const filtered = barbers.filter((b) => {
-        const category = selectedService.category;
-        if (category === "Мужские стрижки") {
-          return b.specialization === "Мужские стрижки";
-        }
-        if (category === "Женские стрижки") {
-          return b.specialization === "Женские стрижки";
-        }
-        return true;
-      });
+      const category = selectedService.category;
+
+      let filtered = barbers;
+
+      // Фильтруем по категории услуги
+      if (category === "Мужские стрижки") {
+        filtered = barbers.filter(
+          (b) => b.specialization === "Мужские стрижки"
+        );
+      } else if (category === "Женские стрижки") {
+        filtered = barbers.filter(
+          (b) => b.specialization === "Женские стрижки"
+        );
+      } else if (category === "Окрашивание") {
+        filtered = barbers.filter((b) => b.specialization === "Окрашивание");
+      } else if (category === "Укладка") {
+        filtered = barbers.filter((b) => b.specialization === "Укладка");
+      } else if (category === "Стрижка + укладка") {
+        filtered = barbers.filter(
+          (b) =>
+            b.specialization === "Мужские стрижки" ||
+            b.specialization === "Женские стрижки" ||
+            b.specialization === "Укладка"
+        );
+      } else if (category === "Коррекция бровей") {
+        filtered = barbers.filter(
+          (b) => b.specialization === "Коррекция бровей"
+        );
+      } else if (category === "Лечение волос") {
+        filtered = barbers.filter(
+          (b) =>
+            b.specialization === "Лечение волос" ||
+            b.specialization === "Уходовые процедуры"
+        );
+      } else if (category === "Уходовые процедуры") {
+        filtered = barbers.filter(
+          (b) =>
+            b.specialization === "Уходовые процедуры" ||
+            b.specialization === "Лечение волос"
+        );
+      } else if (category === "Наращивание волос") {
+        filtered = barbers.filter(
+          (b) => b.specialization === "Наращивание волос"
+        );
+      } else if (category === "Химическая завивка") {
+        filtered = barbers.filter(
+          (b) => b.specialization === "Химическая завивка"
+        );
+      } else if (category === "Вечерние прически") {
+        filtered = barbers.filter(
+          (b) =>
+            b.specialization === "Вечерние прически" ||
+            b.specialization === "Укладка"
+        );
+      } else if (category === "Свадебные прически") {
+        filtered = barbers.filter(
+          (b) =>
+            b.specialization === "Свадебные прически" ||
+            b.specialization === "Вечерние прически" ||
+            b.specialization === "Укладка"
+        );
+      }
+
       setAvailableBarbers(filtered);
     } else {
       setAvailableBarbers([]);

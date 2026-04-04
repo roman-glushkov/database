@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // Создаем работу
       const work = await tx.work.create({
         data: {
           barberId: parseInt(barberId),
@@ -53,12 +52,10 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Проверяем количество работ у клиента
       const workCount = await tx.work.count({
         where: { clientId: parseInt(clientId) },
       });
 
-      // Если это первая работа - обновляем firstVisit
       if (workCount === 1) {
         await tx.client.update({
           where: { id: parseInt(clientId) },
@@ -74,6 +71,41 @@ export async function POST(request: NextRequest) {
     console.error("Error creating work:", error);
     return NextResponse.json(
       { error: "Ошибка при создании работы" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - удаление работы
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID работы обязателен" },
+        { status: 400 }
+      );
+    }
+
+    const workId = parseInt(id);
+
+    // Сначала удаляем связанный отзыв (если есть)
+    await prisma.review.deleteMany({
+      where: { workId: workId },
+    });
+
+    // Затем удаляем работу
+    await prisma.work.delete({
+      where: { id: workId },
+    });
+
+    return NextResponse.json({ message: "Работа удалена" });
+  } catch (error) {
+    console.error("Error deleting work:", error);
+    return NextResponse.json(
+      { error: "Ошибка при удалении работы" },
       { status: 500 }
     );
   }

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET - список парикмахеров
-export async function GET() {
+// GET - список парикмахеров с поиском
+export async function GET(request: NextRequest) {
   try {
-    const barbers = await prisma.barber.findMany({
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search") || "";
+
+    let barbers = await prisma.barber.findMany({
       include: {
         person: true,
         _count: {
@@ -15,6 +18,25 @@ export async function GET() {
         createdAt: "desc",
       },
     });
+
+    // Фильтрация на стороне сервера (регистронезависимая)
+    if (search) {
+      const searchLower = search.toLowerCase();
+      barbers = barbers.filter((barber) => {
+        return (
+          barber.person.firstName.toLowerCase().includes(searchLower) ||
+          barber.person.lastName.toLowerCase().includes(searchLower) ||
+          (barber.person.middleName &&
+            barber.person.middleName.toLowerCase().includes(searchLower)) ||
+          (barber.person.phone &&
+            barber.person.phone.toLowerCase().includes(searchLower)) ||
+          (barber.person.email &&
+            barber.person.email.toLowerCase().includes(searchLower)) ||
+          (barber.specialization &&
+            barber.specialization.toLowerCase().includes(searchLower))
+        );
+      });
+    }
 
     return NextResponse.json(barbers);
   } catch (error) {
@@ -103,7 +125,6 @@ export async function DELETE(request: NextRequest) {
     const barberId = parseInt(id);
 
     const barber = await prisma.$transaction(async (tx) => {
-      // Находим парикмахера
       const existingBarber = await tx.barber.findUnique({
         where: { id: barberId },
         include: { person: true },
@@ -113,17 +134,14 @@ export async function DELETE(request: NextRequest) {
         throw new Error("Парикмахер не найден");
       }
 
-      // Удаляем расписание парикмахера
       await tx.schedule.deleteMany({
         where: { barberId: barberId },
       });
 
-      // Удаляем парикмахера
       await tx.barber.delete({
         where: { id: barberId },
       });
 
-      // Удаляем человека
       await tx.person.delete({
         where: { id: existingBarber.personId },
       });
