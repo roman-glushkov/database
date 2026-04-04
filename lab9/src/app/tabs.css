@@ -17,18 +17,21 @@
 .tabs-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* =========================
    Таблица
 ========================= */
 .table-wrapper {
-  background: white;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
   border-radius: 1rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
   overflow: hidden;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .table {
@@ -38,26 +41,27 @@
 }
 
 .table th {
-  background: #f3f4f6;
+  background: rgba(0, 0, 0, 0.02);
   padding: 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: center;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .table td {
   padding: 0.75rem;
   font-size: 0.875rem;
-  color: #111827;
+  color: var(--text-primary);
   text-align: center;
 }
 
-/* ✅ ФИКС ЛИНИИ (одна, на всю ширину) */
+/* Линии между строками */
 .table tr + tr {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--glass-border);
 }
 
 .table tr {
@@ -65,7 +69,7 @@
 }
 
 .table tr:hover {
-  background: #f9fafb;
+  background: rgba(59, 130, 246, 0.05);
 }
 
 /* Выравнивания */
@@ -96,13 +100,13 @@
 }
 
 .btn-primary {
-  background: #2563eb;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* Маленькие кнопки */
@@ -143,16 +147,18 @@
 }
 
 .badge-info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-blue);
 }
+
 .badge-success {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--primary-green);
 }
+
 .badge-warning {
-  background: #fed7aa;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--primary-orange);
 }
 
 /* =========================
@@ -161,7 +167,7 @@
 .loading {
   text-align: center;
   padding: 3rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
@@ -172,6 +178,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -179,13 +186,15 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
   border-radius: 1rem;
   width: 90%;
   max-width: 520px;
   max-height: 80vh;
   overflow: auto;
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
 }
 
 .modal-header {
@@ -193,13 +202,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .modal-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .modal-close {
@@ -207,20 +217,22 @@
   border: none;
   font-size: 1.4rem;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--text-secondary);
+  transition: color 0.2s;
 }
 
 .modal-close:hover {
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .modal-body {
   padding: 1.25rem;
+  color: var(--text-primary);
 }
 
 .modal-footer {
   padding: 1rem 1.25rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--glass-border);
   display: flex;
   justify-content: flex-end;
 }
@@ -236,24 +248,26 @@
 .schedule-table th,
 .schedule-table td {
   padding: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--glass-border);
   text-align: left;
+  color: var(--text-primary);
 }
 
 .schedule-table th {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
 /* =========================
-   Кнопки действий (убрал дубли)
+   Кнопки действий
 ========================= */
 .btn-edit,
 .btn-delete,
 .btn-certificate,
 .btn-schedule,
-.btn-day {
+.btn-day,
+.btn-review {
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   border-radius: 0.375rem;
@@ -264,43 +278,45 @@
 }
 
 .btn-edit {
-  background: #f59e0b;
-  color: white;
-}
-.btn-delete {
-  background: #ef4444;
-  color: white;
-}
-.btn-certificate {
-  background: #8b5cf6;
-  color: white;
-}
-.btn-schedule {
-  background: #2563eb;
-  color: white;
-}
-.btn-day {
-  background: #10b981;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
   color: white;
 }
 
-.btn-edit:hover {
-  background: #d97706;
+.btn-delete {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
 }
-.btn-delete:hover {
-  background: #dc2626;
+
+.btn-certificate {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
 }
-.btn-certificate:hover {
-  background: #7c3aed;
+
+.btn-schedule {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.btn-day {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-review {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-edit:hover,
+.btn-delete:hover,
+.btn-certificate:hover,
+.btn-schedule:hover,
+.btn-day:hover,
+.btn-review:hover {
   transform: translateY(-1px);
-}
-.btn-schedule:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-}
-.btn-day:hover {
-  background: #059669;
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 /* Список сертификатов */
@@ -314,6 +330,7 @@
   list-style: none;
   position: relative;
   padding-left: 1.5rem;
+  color: var(--text-primary);
 }
 
 .certificates-list li::before {
@@ -324,52 +341,19 @@
 
 /* Кнопка закрыть */
 .btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
+  background: rgba(100, 100, 110, 0.2);
+  color: var(--text-primary);
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   cursor: pointer;
-  border: none;
+  border: 1px solid var(--glass-border);
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background: #d1d5db;
-}
-
-/* =========================
-   Адаптивность
-========================= */
-@media (max-width: 768px) {
-  .tabs-container {
-    padding: 0 0.5rem;
-  }
-
-  .action-buttons {
-    gap: 0.25rem;
-    flex-wrap: wrap;
-  }
-
-  .btn-sm,
-  .btn-certificate,
-  .btn-edit,
-  .btn-delete,
-  .btn-schedule,
-  .btn-day {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  .table th,
-  .table td {
-    padding: 0.5rem;
-  }
-
-  .tabs-title {
-    font-size: 1.25rem;
-  }
+  background: rgba(100, 100, 110, 0.3);
 }
 
 .btn-schedule-link {
@@ -392,19 +376,75 @@
   opacity: 0.8;
 }
 
-.btn-review {
-  background: #10b981;
+/* =========================
+   Адаптивность
+========================= */
+@media (max-width: 768px) {
+  .tabs-container {
+    padding: 0 0.5rem;
+  }
+
+  .action-buttons {
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm,
+  .btn-certificate,
+  .btn-edit,
+  .btn-delete,
+  .btn-schedule,
+  .btn-day,
+  .btn-review {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+  }
+
+  .tabs-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* =========================
+   Кнопки для записей (Выполнено / Отмена)
+========================= */
+.btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   border-radius: 0.375rem;
   cursor: pointer;
   border: none;
-  text-decoration: none;
-  display: inline-block;
   white-space: nowrap;
+  transition: all 0.2s;
 }
 
-.btn-review:hover {
-  background: #7c3aed;
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  filter: brightness(1.05);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  filter: brightness(1.05);
 }

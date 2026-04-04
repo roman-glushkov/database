@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
+import { ThemeProvider } from "@/context/ThemeContext";
+import ThemeToggle from "@/components/ThemeToggle";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,18 +31,21 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={inter.className}>
-        <nav className="navbar">
-          <div className="nav-container">
-            <div className="nav-menu">
-              {menu.map((item) => (
-                <Link key={item.href} href={item.href} className="nav-link">
-                  {item.label}
-                </Link>
-              ))}
+        <ThemeProvider>
+          <nav className="navbar">
+            <div className="nav-container">
+              <div className="nav-menu">
+                {menu.map((item) => (
+                  <Link key={item.href} href={item.href} className="nav-link">
+                    {item.label}
+                  </Link>
+                ))}
+                <ThemeToggle />
+              </div>
             </div>
-          </div>
-        </nav>
-        <main className="main-content">{children}</main>
+          </nav>
+          <main className="main-content">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );

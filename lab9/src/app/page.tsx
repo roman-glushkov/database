@@ -1,12 +1,15 @@
+// page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { Stats } from "@/types";
 
 export default function HomePage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/stats")
@@ -16,143 +19,359 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
   const statCards = [
     {
       title: "Парикмахеры",
       value: stats?.barbersCount || 0,
-      color: "blue",
+      gradient: "gradient-blue",
       link: "/barbers",
-      icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <path d="M18 9a3 3 0 100-6 3 3 0 000 6zM6 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+      ),
+      emoji: "💇",
     },
     {
       title: "Клиенты",
       value: stats?.clientsCount || 0,
-      color: "green",
+      gradient: "gradient-green",
       link: "/clients",
-      icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+      emoji: "👥",
     },
     {
       title: "Услуги",
       value: stats?.servicesCount || 0,
-      color: "purple",
+      gradient: "gradient-purple",
       link: "/services",
-      icon: "M13 10V3L4 14h7v7l9-11h-7z",
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <path d="M7 10L12 5M17 10L12 15" />
+        </svg>
+      ),
+      emoji: "✂️",
     },
     {
       title: "Выполнено работ",
       value: stats?.worksCount || 0,
-      color: "orange",
+      gradient: "gradient-orange",
       link: "/works",
-      icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+      ),
+      emoji: "✨",
     },
   ];
 
   const quickActions = [
     {
-      title: "➕ Добавить парикмахера",
-      desc: "Зарегистрируйте нового мастера",
+      title: "Новый мастер",
+      desc: "Добавьте парикмахера в команду",
       link: "/barbers/create",
-      color: "blue",
+      gradient: "gradient-blue",
+      icon: "💈",
     },
     {
-      title: "👤 Добавить клиента",
-      desc: "Внесите нового клиента в базу",
+      title: "Новый клиент",
+      desc: "Зарегистрируйте клиента",
       link: "/clients/create",
-      color: "green",
+      gradient: "gradient-green",
+      icon: "👤",
     },
     {
-      title: "✂️ Добавить услугу",
-      desc: "Расширьте прайс-лист салона",
+      title: "Новая услуга",
+      desc: "Расширьте прайс-лист",
       link: "/services/create",
-      color: "purple",
+      gradient: "gradient-purple",
+      icon: "💎",
+    },
+    {
+      title: "Новая запись",
+      desc: "Создайте бронирование",
+      link: "/appointments/create",
+      gradient: "gradient-orange",
+      icon: "📅",
     },
   ];
 
   if (loading) {
-    return <div className="loading">Загрузка...</div>;
+    return (
+      <div className="loading-screen">
+        <div className="loading-content">
+          <div className="loading-ring"></div>
+          <div className="loading-spinner"></div>
+          <p>Загрузка волшебства...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container">
-      <div className="home-header">
-        <h1>Парикмахерская Hair & Now</h1>
-        <p>Управление парикмахерами, клиентами и услугами</p>
-      </div>
-
-      <div className="stats-grid">
-        {statCards.map((card) => (
-          <div key={card.title} className={`stat-card stat-${card.color}`}>
-            <div className="stat-card-content">
-              <span>{card.title}</span>
-              <strong>{card.value}</strong>
-            </div>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path d={card.icon} />
-            </svg>
-            <Link href={card.link}>Подробнее →</Link>
-          </div>
-        ))}
-      </div>
-
-      <div className="actions-grid">
-        {quickActions.map((action) => (
+    <div className="home">
+      {/* Анимированный фон с частицами */}
+      <div className="particles-bg">
+        {[...Array(20)].map((_, i) => (
           <div
-            key={action.title}
-            className={`action-card action-${action.color}`}
-          >
-            <h3>{action.title}</h3>
-            <p>{action.desc}</p>
-            <Link href={action.link}>Добавить →</Link>
-          </div>
+            key={i}
+            className="particle"
+            style={
+              {
+                "--delay": `${i * 0.5}s`,
+                "--x": `${Math.random() * 100}%`,
+                "--duration": `${5 + Math.random() * 10}s`,
+              } as React.CSSProperties
+            }
+          />
         ))}
       </div>
 
-      <div className="recent-section">
-        <h2>Последние записи</h2>
-        <div className="table-wrapper">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Клиент</th>
-                <th>Парикмахер</th>
-                <th>Услуга</th>
-                <th>Цена</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats?.recentWorks && stats.recentWorks.length > 0 ? (
-                stats.recentWorks.map((work) => (
-                  <tr key={work.id}>
-                    <td>
-                      {new Date(work.workDate).toLocaleDateString("ru-RU")}
-                    </td>
-                    <td>
-                      {work.client?.person?.firstName}{" "}
-                      {work.client?.person?.lastName}
-                    </td>
-                    <td>
-                      {work.barber?.person?.firstName}{" "}
-                      {work.barber?.person?.lastName}
-                    </td>
-                    <td>{work.service?.name}</td>
-                    <td>{work.service?.price} ₽</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5}>Нет выполненных работ</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* Градиентный шар, следующий за мышью */}
+      <div
+        className="mouse-glow"
+        style={{
+          left: mousePosition.x,
+          top: mousePosition.y,
+        }}
+      />
+
+      {/* Hero секция */}
+      <div className="hero-section" ref={heroRef}>
+        <div className="hero-badge">
+          <span className="badge-glow">✨ Салон премиум класса</span>
         </div>
-        <Link href="/works">Показать все записи →</Link>
+        <h1 className="hero-title">
+          Hair &<span className="gradient-text"> Now</span>
+        </h1>
+        <p className="hero-subtitle">
+          Умное управление салоном красоты нового поколения
+        </p>
+        <div className="hero-stats">
+          <div className="hero-stat">
+            <span className="hero-stat-value">{stats?.barbersCount || 0}</span>
+            <span className="hero-stat-label">Мастеров</span>
+          </div>
+          <div className="hero-stat-divider"></div>
+          <div className="hero-stat">
+            <span className="hero-stat-value">{stats?.clientsCount || 0}</span>
+            <span className="hero-stat-label">Клиентов</span>
+          </div>
+          <div className="hero-stat-divider"></div>
+          <div className="hero-stat">
+            <span className="hero-stat-value">{stats?.worksCount || 0}</span>
+            <span className="hero-stat-label">Работ</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Карточки статистики */}
+      <div className="stats-section">
+        <div className="section-header">
+          <span className="section-chip">Аналитика</span>
+          <h2 className="section-title">Ключевые показатели</h2>
+        </div>
+        <div className="stats-grid">
+          {statCards.map((card, idx) => (
+            <Link
+              href={card.link}
+              key={card.title}
+              className="stat-card-wrapper"
+            >
+              <div
+                className={`stat-card ${card.gradient}`}
+                style={{ animationDelay: `${idx * 0.1}s` }}
+              >
+                <div className="stat-card-front">
+                  <div className="stat-icon">{card.icon}</div>
+                  <div className="stat-content">
+                    <span className="stat-title">{card.title}</span>
+                    <div className="stat-value-wrapper">
+                      <span className="stat-emoji">{card.emoji}</span>
+                      <strong className="stat-value">{card.value}</strong>
+                    </div>
+                  </div>
+                  <div className="stat-arrow">→</div>
+                </div>
+                <div className="stat-card-back">
+                  <span>Подробнее</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Быстрые действия */}
+      <div className="actions-section">
+        <div className="section-header">
+          <span className="section-chip">Быстрые действия</span>
+          <h2 className="section-title">Что нужно сделать?</h2>
+        </div>
+        <div className="actions-grid">
+          {quickActions.map((action) => (
+            <Link
+              href={action.link}
+              key={action.title}
+              className="action-card-wrapper"
+            >
+              <div className={`action-card ${action.gradient}`}>
+                <div className="action-icon">{action.icon}</div>
+                <h3 className="action-title">{action.title}</h3>
+                <p className="action-desc">{action.desc}</p>
+                <div className="action-btn">
+                  <span>Создать</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Последние записи */}
+      <div className="recent-section">
+        <div className="section-header">
+          <span className="section-chip">Активность</span>
+          <h2 className="section-title">Последние записи</h2>
+        </div>
+        <div className="recent-card">
+          <div className="table-container">
+            <table className="modern-table">
+              <thead>
+                <tr>
+                  <th>📅 Дата</th>
+                  <th>👤 Клиент</th>
+                  <th>💇 Парикмахер</th>
+                  <th>✂️ Услуга</th>
+                  <th>💰 Цена</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats?.recentWorks && stats.recentWorks.length > 0 ? (
+                  stats.recentWorks.map((work, idx) => (
+                    <tr
+                      key={work.id}
+                      style={{ animationDelay: `${idx * 0.05}s` }}
+                    >
+                      <td>
+                        <div className="date-cell">
+                          <span className="date-day">
+                            {new Date(work.workDate).toLocaleDateString(
+                              "ru-RU",
+                              { day: "numeric" }
+                            )}
+                          </span>
+                          <span className="date-month">
+                            {new Date(work.workDate).toLocaleDateString(
+                              "ru-RU",
+                              { month: "short" }
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="client-cell">
+                          <div className="client-avatar">
+                            {work.client?.person?.firstName?.[0]}
+                            {work.client?.person?.lastName?.[0]}
+                          </div>
+                          <span>
+                            {work.client?.person?.firstName}{" "}
+                            {work.client?.person?.lastName}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="barber-cell">
+                          <span>
+                            {work.barber?.person?.firstName}{" "}
+                            {work.barber?.person?.lastName}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="service-tag">
+                          {work.service?.name}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="price-cell">
+                          {work.service?.price} ₽
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5}>
+                      <div className="empty-state">
+                        <span>📭</span>
+                        <p>Нет выполненных работ</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="recent-footer">
+            <Link href="/works" className="view-all-btn">
+              <span>Показать все записи</span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
