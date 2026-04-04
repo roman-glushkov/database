@@ -16,12 +16,11 @@ const days = [
   { value: 7, label: "Воскресенье" },
 ];
 
-interface FormData {
-  barberId: string;
+interface ScheduleFormData {
+  id: number;
+  dayOfWeek: number;
   startTime: string;
   endTime: string;
-  isDayOff: boolean;
-  dayOfWeek?: string; // для режима single
 }
 
 export default function CreateSchedulePage() {
@@ -31,366 +30,219 @@ export default function CreateSchedulePage() {
 
   const [loading, setLoading] = useState(false);
   const [barbers, setBarbers] = useState<Barber[]>([]);
-  const [existingDays, setExistingDays] = useState<number[]>([]);
-  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
-  const [selectedDays, setSelectedDays] = useState<number[]>([]);
-  const [mode, setMode] = useState<"single" | "multiple">("single");
-  const [formData, setFormData] = useState<FormData>({
-    barberId: presetBarberId || "",
-    startTime: "",
-    endTime: "",
-    isDayOff: false,
-    dayOfWeek: "",
-  });
+  const [selectedBarberId, setSelectedBarberId] = useState(
+    presetBarberId || ""
+  );
+  const [schedules, setSchedules] = useState<Record<number, ScheduleFormData>>(
+    {}
+  );
 
-  // Загрузка парикмахеров
   useEffect(() => {
     fetch("/api/barbers")
       .then((res) => res.json())
-      .then((data: Barber[]) => setBarbers(data))
-      .catch((err) => console.error(err));
+      .then(setBarbers)
+      .catch(console.error);
   }, []);
 
-  // Загрузка существующего расписания выбранного парикмахера
   useEffect(() => {
-    if (formData.barberId) {
-      fetch(`/api/schedules?barberId=${formData.barberId}`)
+    if (selectedBarberId) {
+      fetch(`/api/schedules?barberId=${selectedBarberId}`)
         .then((res) => res.json())
         .then((data: Schedule[]) => {
-          const daysList = data.map((s: Schedule) => s.dayOfWeek);
-          setExistingDays(daysList);
+          const scheduleMap: Record<number, ScheduleFormData> = {};
+          data.forEach((s) => {
+            scheduleMap[s.dayOfWeek] = {
+              id: s.id,
+              dayOfWeek: s.dayOfWeek,
+              startTime: s.startTime || "",
+              endTime: s.endTime || "",
+            };
+          });
+          setSchedules(scheduleMap);
         })
-        .catch((err) => console.error(err));
-
-      const barber = barbers.find((b) => b.id === parseInt(formData.barberId));
-      setSelectedBarber(barber || null);
+        .catch(console.error);
     } else {
-      setExistingDays([]);
-      setSelectedBarber(null);
-      setSelectedDays([]);
+      setSchedules({});
     }
-  }, [formData.barberId, barbers]);
+  }, [selectedBarberId]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  const updateSchedule = (
+    dayValue: number,
+    field: keyof ScheduleFormData,
+    value: string
   ) => {
-    const value =
-      e.target.type === "checkbox"
-        ? (e.target as HTMLInputElement).checked
-        : e.target.value;
-    setFormData({ ...formData, [e.target.name]: value });
+    setSchedules((prev) => ({
+      ...prev,
+      [dayValue]: {
+        ...prev[dayValue],
+        id: prev[dayValue]?.id || 0,
+        dayOfWeek: dayValue,
+        [field]: value,
+      },
+    }));
   };
 
-  const toggleDay = (dayValue: number) => {
-    if (selectedDays.includes(dayValue)) {
-      setSelectedDays(selectedDays.filter((d) => d !== dayValue));
-    } else {
-      setSelectedDays([...selectedDays, dayValue]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setLoading(true);
-
-    let daysToAdd: number[] = [];
-
-    if (mode === "single") {
-      if (formData.dayOfWeek) {
-        daysToAdd = [parseInt(formData.dayOfWeek)];
-      }
-    } else {
-      daysToAdd = selectedDays;
-    }
-
-    if (daysToAdd.length === 0) {
-      alert("Выберите хотя бы один день");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const promises = daysToAdd.map((day) =>
-        fetch("/api/schedules", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            barberId: formData.barberId,
-            dayOfWeek: day,
-            startTime: formData.startTime,
-            endTime: formData.endTime,
-            isDayOff: formData.isDayOff,
-          }),
-        })
-      );
+      for (const day of days) {
+        const schedule = schedules[day.value];
+        if (!schedule) continue;
 
-      const results = await Promise.all(promises);
-      const allSuccess = results.every((res) => res.ok);
+        const hasData = schedule.startTime || schedule.endTime;
+        if (!hasData) continue;
 
-      if (allSuccess) {
-        alert(`Успешно добавлено ${daysToAdd.length} дней!`);
-        router.push("/barbers");
-      } else {
-        alert("Ошибка при добавлении некоторых дней");
+        // Если есть только одно время - ошибка
+        if (
+          (schedule.startTime && !schedule.endTime) ||
+          (!schedule.startTime && schedule.endTime)
+        ) {
+          alert(`Для ${day.label} укажите и время начала, и время окончания`);
+          setLoading(false);
+          return;
+        }
+
+        const isDayOff = !schedule.startTime && !schedule.endTime;
+
+        if (schedule.id > 0) {
+          await fetch(`/api/schedules/${schedule.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              startTime: schedule.startTime || null,
+              endTime: schedule.endTime || null,
+              isDayOff: isDayOff,
+            }),
+          });
+        } else if (schedule.startTime && schedule.endTime) {
+          await fetch("/api/schedules", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              barberId: parseInt(selectedBarberId),
+              dayOfWeek: day.value,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              isDayOff: false,
+            }),
+          });
+        }
       }
+
+      alert("Расписание сохранено!");
+      router.push("/barbers");
     } catch {
-      alert("Ошибка при добавлении расписания");
+      alert("Ошибка при сохранении");
     } finally {
       setLoading(false);
     }
   };
 
-  const isDayExists = (dayValue: number) => existingDays.includes(dayValue);
-  const isDaySelected = (dayValue: number) => selectedDays.includes(dayValue);
+  const selectedBarber = barbers.find(
+    (b) => b.id === parseInt(selectedBarberId)
+  );
 
   return (
-    <div className="form-container">
+    <div className="form-container schedule-form-container">
       <div className="form-card">
         <Link href="/barbers" className="btn-back">
           ← Назад к парикмахерам
         </Link>
-        <h1 className="form-title">Добавить расписание</h1>
+
+        <h1 className="form-title">Редактирование расписания</h1>
 
         {selectedBarber && (
-          <div
-            style={{
-              background: "#f3f4f6",
-              padding: "0.75rem",
-              borderRadius: "0.5rem",
-              marginBottom: "1rem",
-              textAlign: "center",
-            }}
-          >
-            Парикмахер:{" "}
-            <strong>
-              {selectedBarber.person.lastName} {selectedBarber.person.firstName}
-            </strong>
-          </div>
+          <>
+            <div className="schedule-info">
+              <strong>Парикмахер:</strong> {selectedBarber.person.lastName}{" "}
+              {selectedBarber.person.firstName}
+            </div>
+
+            <div className="schedule-table-wrapper">
+              <table className="schedule-table">
+                <thead>
+                  <tr>
+                    <th>День недели</th>
+                    <th>Время начала</th>
+                    <th>Время окончания</th>
+                    <th>Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {days.map((day) => {
+                    const schedule = schedules[day.value];
+                    const startTime = schedule?.startTime || "";
+                    const endTime = schedule?.endTime || "";
+                    const isDayOff = !startTime && !endTime;
+
+                    return (
+                      <tr key={day.value}>
+                        <td className="schedule-day">{day.label}</td>
+                        <td>
+                          <input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) =>
+                              updateSchedule(
+                                day.value,
+                                "startTime",
+                                e.target.value
+                              )
+                            }
+                            className="form-input schedule-time-input"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) =>
+                              updateSchedule(
+                                day.value,
+                                "endTime",
+                                e.target.value
+                              )
+                            }
+                            className="form-input schedule-time-input"
+                          />
+                        </td>
+                        <td className="schedule-status">
+                          {isDayOff ? (
+                            <span className="badge badge-warning">
+                              Выходной
+                            </span>
+                          ) : startTime && endTime ? (
+                            <span className="badge badge-success">Рабочий</span>
+                          ) : (
+                            <span className="badge badge-info">
+                              Не заполнено
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="button-group">
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="btn-submit"
+              >
+                {loading ? "Сохранение..." : "Сохранить всё"}
+              </button>
+              <button
+                onClick={() => router.push("/barbers")}
+                className="btn-cancel"
+              >
+                Отмена
+              </button>
+            </div>
+          </>
         )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Парикмахер *</label>
-            <select
-              name="barberId"
-              value={formData.barberId}
-              onChange={handleChange}
-              required
-              className="form-input"
-              disabled={!!presetBarberId}
-            >
-              <option value="">Выберите парикмахера</option>
-              {barbers.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.person.lastName} {b.person.firstName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Режим добавления</label>
-            <div style={{ display: "flex", gap: "1rem" }}>
-              <label
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-              >
-                <input
-                  type="radio"
-                  value="single"
-                  checked={mode === "single"}
-                  onChange={() => setMode("single")}
-                />
-                Один день
-              </label>
-              <label
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-              >
-                <input
-                  type="radio"
-                  value="multiple"
-                  checked={mode === "multiple"}
-                  onChange={() => setMode("multiple")}
-                />
-                Несколько дней
-              </label>
-            </div>
-          </div>
-
-          {mode === "single" ? (
-            <div className="form-group">
-              <label className="form-label">День недели *</label>
-              <select
-                name="dayOfWeek"
-                value={formData.dayOfWeek}
-                onChange={handleChange}
-                required
-                className="form-input"
-              >
-                <option value="">Выберите день</option>
-                {days.map((d) => (
-                  <option
-                    key={d.value}
-                    value={d.value}
-                    disabled={isDayExists(d.value)}
-                    style={
-                      isDayExists(d.value)
-                        ? { color: "#dc2626", background: "#fee2e2" }
-                        : {}
-                    }
-                  >
-                    {d.label} {isDayExists(d.value) ? "⚠️ (уже есть)" : ""}
-                  </option>
-                ))}
-              </select>
-              {formData.dayOfWeek &&
-                isDayExists(parseInt(formData.dayOfWeek)) && (
-                  <p
-                    style={{
-                      color: "#dc2626",
-                      fontSize: "0.75rem",
-                      marginTop: "0.25rem",
-                    }}
-                  >
-                    ⚠️ Внимание! У этого парикмахера уже есть расписание на этот
-                    день
-                  </p>
-                )}
-            </div>
-          ) : (
-            <div className="form-group">
-              <label className="form-label">Выберите дни *</label>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "0.5rem",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "0.5rem",
-                  padding: "1rem",
-                }}
-              >
-                {days.map((d) => {
-                  const exists = isDayExists(d.value);
-                  const selected = isDaySelected(d.value);
-                  return (
-                    <label
-                      key={d.value}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        padding: "0.5rem",
-                        borderRadius: "0.375rem",
-                        background: selected
-                          ? "#dbeafe"
-                          : exists
-                          ? "#fee2e2"
-                          : "#f9fafb",
-                        cursor: exists ? "not-allowed" : "pointer",
-                        opacity: exists ? 0.6 : 1,
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() => toggleDay(d.value)}
-                        disabled={exists}
-                      />
-                      <span style={{ color: exists ? "#dc2626" : "#374151" }}>
-                        {d.label} {exists && "⚠️"}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-              {selectedDays.length > 0 && (
-                <p
-                  style={{
-                    color: "#2563eb",
-                    fontSize: "0.75rem",
-                    marginTop: "0.5rem",
-                  }}
-                >
-                  Выбрано дней: {selectedDays.length}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className="form-group">
-            <label className="form-label">
-              <input
-                type="checkbox"
-                name="isDayOff"
-                checked={formData.isDayOff}
-                onChange={handleChange}
-                style={{ marginRight: "0.5rem" }}
-              />
-              Выходной день
-            </label>
-          </div>
-
-          {!formData.isDayOff && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Время начала</label>
-                <input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleChange}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Время окончания</label>
-                <input
-                  type="time"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleChange}
-                  className="form-input"
-                />
-              </div>
-            </>
-          )}
-
-          {existingDays.length > 0 && (
-            <div
-              style={{
-                background: "#fef3c7",
-                padding: "0.5rem",
-                borderRadius: "0.5rem",
-                marginBottom: "1rem",
-                fontSize: "0.75rem",
-              }}
-            >
-              <strong>📅 Уже добавлены дни:</strong>{" "}
-              {existingDays
-                .sort((a, b) => a - b)
-                .map((d) => days.find((day) => day.value === d)?.label)
-                .join(", ")}
-            </div>
-          )}
-
-          <div className="button-group">
-            <button type="submit" disabled={loading} className="btn-submit">
-              {loading
-                ? "Добавление..."
-                : mode === "multiple" && selectedDays.length > 0
-                ? `Добавить ${selectedDays.length} дней`
-                : "Добавить день"}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/barbers")}
-              className="btn-cancel"
-            >
-              Отмена
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );

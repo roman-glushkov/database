@@ -68,3 +68,30 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// DELETE - удаление расписания
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID расписания обязателен" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.schedule.delete({
+      where: { id: parseInt(id) },
+    });
+
+    return NextResponse.json({ message: "Расписание удалено" });
+  } catch (error) {
+    console.error("Error deleting schedule:", error);
+    return NextResponse.json(
+      { error: "Ошибка при удалении расписания" },
+      { status: 500 }
+    );
+  }
+}

@@ -320,3 +320,65 @@
     display: none;
   }
 }
+
+/* Стили для страницы расписания */
+.schedule-form-container {
+  max-width: 700px;
+}
+
+.schedule-info {
+  background: rgba(59, 130, 246, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--text-primary);
+}
+
+.schedule-table-wrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--glass-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.schedule-table th {
+  background: rgba(59, 130, 246, 0.05);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.schedule-table th:last-child,
+.schedule-table td:last-child {
+  text-align: center;
+}
+
+.schedule-day {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.schedule-time-input {
+  width: 120px;
+}
+
+.schedule-status {
+  text-align: center;
+}
+
+.badge-info {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-blue);
+}
