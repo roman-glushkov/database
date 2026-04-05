@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const works = await prisma.work.findMany({
+    const { searchParams } = new URL(request.url);
+    const client = searchParams.get("client") || "";
+    const barber = searchParams.get("barber") || "";
+    const service = searchParams.get("service") || "";
+    const dateFrom = searchParams.get("dateFrom") || "";
+    const dateTo = searchParams.get("dateTo") || "";
+
+    let works = await prisma.work.findMany({
       include: {
         barber: { include: { person: true } },
         client: { include: { person: true } },
@@ -15,6 +22,48 @@ export async function GET() {
       },
     });
 
+    // Фильтрация по клиенту
+    if (client) {
+      const clientLower = client.toLowerCase();
+      works = works.filter((work) => {
+        const fullName = `${work.client.person.lastName} ${
+          work.client.person.firstName
+        } ${work.client.person.middleName || ""}`.toLowerCase();
+        return fullName.includes(clientLower);
+      });
+    }
+
+    // Фильтрация по парикмахеру
+    if (barber) {
+      const barberLower = barber.toLowerCase();
+      works = works.filter((work) => {
+        const fullName =
+          `${work.barber.person.lastName} ${work.barber.person.firstName}`.toLowerCase();
+        return fullName.includes(barberLower);
+      });
+    }
+
+    // Фильтрация по услуге
+    if (service) {
+      const serviceLower = service.toLowerCase();
+      works = works.filter((work) =>
+        work.service.name.toLowerCase().includes(serviceLower)
+      );
+    }
+
+    // Фильтрация по диапазону дат
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      works = works.filter((work) => new Date(work.workDate) >= fromDate);
+    }
+
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      works = works.filter((work) => new Date(work.workDate) <= toDate);
+    }
+
     return NextResponse.json(works);
   } catch (error) {
     console.error("Error fetching works:", error);
@@ -25,6 +74,7 @@ export async function GET() {
   }
 }
 
+// POST, DELETE остаются без изменений
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -76,7 +126,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - удаление работы
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -91,12 +140,10 @@ export async function DELETE(request: NextRequest) {
 
     const workId = parseInt(id);
 
-    // Сначала удаляем связанный отзыв (если есть)
     await prisma.review.deleteMany({
       where: { workId: workId },
     });
 
-    // Затем удаляем работу
     await prisma.work.delete({
       where: { id: workId },
     });

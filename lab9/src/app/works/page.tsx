@@ -11,13 +11,35 @@ export default function WorksPage() {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Фильтры
+  const [filters, setFilters] = useState({
+    client: "",
+    barber: "",
+    service: "",
+    dateFrom: "",
+    dateTo: "",
+  });
+  const [clientInput, setClientInput] = useState("");
+  const [barberInput, setBarberInput] = useState("");
+  const [serviceInput, setServiceInput] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
   const fetchWorks = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("/api/works");
+      const params = new URLSearchParams();
+      if (filters.client) params.append("client", filters.client);
+      if (filters.barber) params.append("barber", filters.barber);
+      if (filters.service) params.append("service", filters.service);
+      if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
+      if (filters.dateTo) params.append("dateTo", filters.dateTo);
+
+      const res = await fetch(`/api/works?${params.toString()}`);
       const data = await res.json();
-      setWorks(data);
+      setWorks(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setWorks([]);
     } finally {
       setLoading(false);
     }
@@ -25,7 +47,53 @@ export default function WorksPage() {
 
   useEffect(() => {
     fetchWorks();
-  }, []);
+  }, [filters]);
+
+  const handleFilterChange = (field: string, value: string) => {
+    if (field !== "client" && field !== "barber" && field !== "service") {
+      setFilters((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const applyClientFilter = () => {
+    setFilters((prev) => ({ ...prev, client: clientInput }));
+  };
+
+  const applyBarberFilter = () => {
+    setFilters((prev) => ({ ...prev, barber: barberInput }));
+  };
+
+  const applyServiceFilter = () => {
+    setFilters((prev) => ({ ...prev, service: serviceInput }));
+  };
+
+  const handleClientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") applyClientFilter();
+  };
+  const handleClientBlur = () => applyClientFilter();
+
+  const handleBarberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") applyBarberFilter();
+  };
+  const handleBarberBlur = () => applyBarberFilter();
+
+  const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") applyServiceFilter();
+  };
+  const handleServiceBlur = () => applyServiceFilter();
+
+  const resetFilters = () => {
+    setFilters({
+      client: "",
+      barber: "",
+      service: "",
+      dateFrom: "",
+      dateTo: "",
+    });
+    setClientInput("");
+    setBarberInput("");
+    setServiceInput("");
+  };
 
   const handleDelete = async (
     id: number,
@@ -53,7 +121,83 @@ export default function WorksPage() {
     <div className="tabs-container">
       <div className="tabs-header">
         <h1 className="tabs-title">Выполненные работы</h1>
+        <div className="header-actions">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="btn-filter"
+          >
+            🔍 Фильтры {showFilters ? "▲" : "▼"}
+          </button>
+        </div>
       </div>
+
+      {/* Панель фильтров */}
+      {showFilters && (
+        <div className="filters-panel">
+          <div className="filters-grid">
+            <div className="filter-group">
+              <label>Клиент</label>
+              <input
+                type="text"
+                placeholder="Введите ФИО клиента... (Enter для поиска)"
+                value={clientInput}
+                onChange={(e) => setClientInput(e.target.value)}
+                onKeyDown={handleClientKeyDown}
+                onBlur={handleClientBlur}
+                className="filter-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Парикмахер</label>
+              <input
+                type="text"
+                placeholder="Введите ФИО парикмахера... (Enter для поиска)"
+                value={barberInput}
+                onChange={(e) => setBarberInput(e.target.value)}
+                onKeyDown={handleBarberKeyDown}
+                onBlur={handleBarberBlur}
+                className="filter-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Услуга</label>
+              <input
+                type="text"
+                placeholder="Введите название услуги... (Enter для поиска)"
+                value={serviceInput}
+                onChange={(e) => setServiceInput(e.target.value)}
+                onKeyDown={handleServiceKeyDown}
+                onBlur={handleServiceBlur}
+                className="filter-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Дата от</label>
+              <input
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+                className="filter-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Дата до</label>
+              <input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+                className="filter-input"
+              />
+            </div>
+          </div>
+          <div className="filters-actions">
+            <button onClick={resetFilters} className="btn-reset">
+              Сбросить все
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="table-wrapper">
         <table className="table">
           <thead>
@@ -71,22 +215,26 @@ export default function WorksPage() {
             {works.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center">
-                  Нет выполненных работ
+                  {Object.values(filters).some((v) => v)
+                    ? "Ничего не найдено"
+                    : "Нет выполненных работ"}
                 </td>
               </tr>
             ) : (
               works.map((w) => (
                 <tr key={w.id}>
-                  <td>{new Date(w.workDate).toLocaleDateString("ru-RU")}</td>
-                  <td>
+                  <td className="text-center">
+                    {new Date(w.workDate).toLocaleDateString("ru-RU")}
+                  </td>
+                  <td className="text-left">
                     {w.client.person.lastName} {w.client.person.firstName}
                   </td>
-                  <td>
+                  <td className="text-left">
                     {w.barber.person.lastName} {w.barber.person.firstName}
                   </td>
-                  <td>{w.service.name}</td>
-                  <td>{w.service.price} ₽</td>
-                  <td>
+                  <td className="text-left">{w.service.name}</td>
+                  <td className="text-center">{w.service.price} ₽</td>
+                  <td className="text-center">
                     {w.review ? (
                       <span className="badge badge-success">
                         ⭐ {w.review.rating}

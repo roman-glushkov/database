@@ -2,30 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
-// GET - список записей
+// GET - список записей с фильтрацией
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
+    const status = searchParams.get("status") || "pending";
     const barberId = searchParams.get("barberId");
     const date = searchParams.get("date");
+    const client = searchParams.get("client") || "";
+    const barber = searchParams.get("barber") || "";
+    const service = searchParams.get("service") || "";
+    const dateFrom = searchParams.get("dateFrom") || "";
+    const dateTo = searchParams.get("dateTo") || "";
 
-    const where: Prisma.AppointmentWhereInput = {};
-
-    if (status) where.status = status;
+    let where: Prisma.AppointmentWhereInput = { status: "pending" };
+    if (status === "all") where = {};
+    else if (status) where.status = status;
     if (barberId) where.barberId = parseInt(barberId);
-    if (date) {
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-      where.date = {
-        gte: startDate,
-        lte: endDate,
-      };
-    }
 
-    const appointments = await prisma.appointment.findMany({
+    let appointments = await prisma.appointment.findMany({
       where,
       include: {
         client: { include: { person: true } },
@@ -37,6 +32,50 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Фильтрация по клиенту
+    if (client) {
+      const clientLower = client.toLowerCase();
+      appointments = appointments.filter((app) => {
+        const fullName = `${app.client.person.lastName} ${
+          app.client.person.firstName
+        } ${app.client.person.middleName || ""}`.toLowerCase();
+        return fullName.includes(clientLower);
+      });
+    }
+
+    // Фильтрация по парикмахеру
+    if (barber) {
+      const barberLower = barber.toLowerCase();
+      appointments = appointments.filter((app) => {
+        const fullName =
+          `${app.barber.person.lastName} ${app.barber.person.firstName}`.toLowerCase();
+        return fullName.includes(barberLower);
+      });
+    }
+
+    // Фильтрация по услуге
+    if (service) {
+      const serviceLower = service.toLowerCase();
+      appointments = appointments.filter((app) =>
+        app.service.name.toLowerCase().includes(serviceLower)
+      );
+    }
+
+    // Фильтрация по диапазону дат
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      appointments = appointments.filter(
+        (app) => new Date(app.date) >= fromDate
+      );
+    }
+
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      appointments = appointments.filter((app) => new Date(app.date) <= toDate);
+    }
+
     return NextResponse.json(appointments);
   } catch (error) {
     console.error("Error fetching appointments:", error);
@@ -47,7 +86,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - создание записи
+// POST, PUT остаются без изменений
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -60,7 +99,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем, свободен ли парикмахер в это время
     const appointmentDate = new Date(date);
     const startOfDay = new Date(appointmentDate);
     startOfDay.setHours(0, 0, 0, 0);
@@ -110,7 +148,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - обновление статуса записи (выполнено/отмена)
 export async function PUT(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -124,7 +161,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Получаем запись до удаления
     const existingAppointment = await prisma.appointment.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -138,7 +174,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Запись не найдена" }, { status: 404 });
     }
 
-    // Если статус "completed" - создаем запись в Work
     if (status === "completed") {
       await prisma.work.create({
         data: {
@@ -150,7 +185,6 @@ export async function PUT(request: NextRequest) {
       });
     }
 
-    // Удаляем запись из Appointment (независимо от статуса)
     await prisma.appointment.delete({
       where: { id: parseInt(id) },
     });

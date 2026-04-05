@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const clients = await prisma.client.findMany({
+    const { searchParams } = new URL(request.url);
+    const fio = searchParams.get("fio") || "";
+    const discount = searchParams.get("discount") || "";
+    const visits = searchParams.get("visits") || "";
+
+    let clients = await prisma.client.findMany({
       include: {
         person: true,
         _count: {
@@ -15,6 +20,55 @@ export async function GET() {
       },
     });
 
+    // Фильтрация по ФИО
+    if (fio) {
+      const fioLower = fio.toLowerCase();
+      clients = clients.filter((client) => {
+        const fullName = `${client.person.lastName} ${
+          client.person.firstName
+        } ${client.person.middleName || ""}`.toLowerCase();
+        return fullName.includes(fioLower);
+      });
+    }
+
+    // Фильтрация по скидке
+    if (discount) {
+      clients = clients.filter((client) => {
+        const disc = client.discount || 0;
+        switch (discount) {
+          case "0":
+            return disc === 0;
+          case "1-10":
+            return disc >= 1 && disc <= 10;
+          case "11-20":
+            return disc >= 11 && disc <= 20;
+          case "20+":
+            return disc >= 20;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Фильтрация по количеству визитов
+    if (visits) {
+      clients = clients.filter((client) => {
+        const visitsCount = client._count?.works || 0;
+        switch (visits) {
+          case "0":
+            return visitsCount === 0;
+          case "1-3":
+            return visitsCount >= 1 && visitsCount <= 3;
+          case "4-10":
+            return visitsCount >= 4 && visitsCount <= 10;
+          case "10+":
+            return visitsCount >= 10;
+          default:
+            return true;
+        }
+      });
+    }
+
     return NextResponse.json(clients);
   } catch (error) {
     console.error("Error fetching clients:", error);
@@ -25,6 +79,7 @@ export async function GET() {
   }
 }
 
+// POST, DELETE остаются без изменений
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -81,7 +136,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - удаление клиента
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -106,17 +160,14 @@ export async function DELETE(request: NextRequest) {
         throw new Error("Клиент не найден");
       }
 
-      // Удаляем все работы клиента
       await tx.work.deleteMany({
         where: { clientId: clientId },
       });
 
-      // Удаляем клиента
       await tx.client.delete({
         where: { id: clientId },
       });
 
-      // Удаляем человека
       await tx.person.delete({
         where: { id: existingClient.personId },
       });

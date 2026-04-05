@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const reviews = await prisma.review.findMany({
+    const { searchParams } = new URL(request.url);
+    const client = searchParams.get("client") || "";
+    const barber = searchParams.get("barber") || "";
+    const service = searchParams.get("service") || "";
+    const rating = searchParams.get("rating") || "";
+    const dateFrom = searchParams.get("dateFrom") || "";
+    const dateTo = searchParams.get("dateTo") || "";
+
+    let reviews = await prisma.review.findMany({
       include: {
         work: {
           include: {
@@ -17,6 +25,57 @@ export async function GET() {
         reviewDate: "desc",
       },
     });
+
+    // Фильтрация по клиенту
+    if (client) {
+      const clientLower = client.toLowerCase();
+      reviews = reviews.filter((review) => {
+        const fullName = `${review.work.client.person.lastName} ${
+          review.work.client.person.firstName
+        } ${review.work.client.person.middleName || ""}`.toLowerCase();
+        return fullName.includes(clientLower);
+      });
+    }
+
+    // Фильтрация по парикмахеру
+    if (barber) {
+      const barberLower = barber.toLowerCase();
+      reviews = reviews.filter((review) => {
+        const fullName =
+          `${review.work.barber.person.lastName} ${review.work.barber.person.firstName}`.toLowerCase();
+        return fullName.includes(barberLower);
+      });
+    }
+
+    // Фильтрация по услуге
+    if (service) {
+      const serviceLower = service.toLowerCase();
+      reviews = reviews.filter((review) =>
+        review.work.service.name.toLowerCase().includes(serviceLower)
+      );
+    }
+
+    // Фильтрация по оценке
+    if (rating) {
+      reviews = reviews.filter((review) => review.rating === parseInt(rating));
+    }
+
+    // Фильтрация по диапазону дат
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      reviews = reviews.filter(
+        (review) => new Date(review.reviewDate) >= fromDate
+      );
+    }
+
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      reviews = reviews.filter(
+        (review) => new Date(review.reviewDate) <= toDate
+      );
+    }
 
     return NextResponse.json(reviews);
   } catch (error) {
@@ -68,7 +127,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - удаление отзыва
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
