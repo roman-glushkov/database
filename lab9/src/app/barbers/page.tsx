@@ -13,15 +13,31 @@ export default function BarbersPage() {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [schedules, setSchedules] = useState<Record<number, Schedule[]>>({});
   const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState("");
   const [showSchedule, setShowSchedule] = useState<number | null>(null);
   const [showCertificates, setShowCertificates] = useState<number | null>(null);
 
-  const fetchBarbers = async (searchTerm: string = "") => {
+  // Фильтры
+  const [filters, setFilters] = useState({
+    fio: "",
+    experience: "",
+    specialization: "",
+    schedule: "",
+  });
+  const [fioInput, setFioInput] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const fetchBarbers = async () => {
     setLoading(true);
     try {
+      const params = new URLSearchParams();
+      if (filters.fio) params.append("fio", filters.fio);
+      if (filters.experience) params.append("experience", filters.experience);
+      if (filters.specialization)
+        params.append("specialization", filters.specialization);
+      if (filters.schedule) params.append("schedule", filters.schedule);
+
       const [barbersRes, schedulesRes] = await Promise.all([
-        fetch(`/api/barbers?search=${encodeURIComponent(searchTerm)}`),
+        fetch(`/api/barbers?${params.toString()}`),
         fetch("/api/schedules"),
       ]);
 
@@ -49,12 +65,36 @@ export default function BarbersPage() {
 
   useEffect(() => {
     fetchBarbers();
-  }, []);
+  }, [filters]);
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      fetchBarbers(searchInput);
+  const handleFilterChange = (field: string, value: string) => {
+    if (field !== "fio") {
+      setFilters((prev) => ({ ...prev, [field]: value }));
     }
+  };
+
+  const applyFioFilter = () => {
+    setFilters((prev) => ({ ...prev, fio: fioInput }));
+  };
+
+  const handleFioKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      applyFioFilter();
+    }
+  };
+
+  const handleFioBlur = () => {
+    applyFioFilter();
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      fio: "",
+      experience: "",
+      specialization: "",
+      schedule: "",
+    });
+    setFioInput("");
   };
 
   const getScheduleText = (barberId: number) => {
@@ -94,7 +134,7 @@ export default function BarbersPage() {
         const res = await fetch(`/api/barbers?id=${id}`, { method: "DELETE" });
         if (res.ok) {
           alert("Парикмахер удален");
-          fetchBarbers(searchInput);
+          fetchBarbers();
         } else {
           alert("Ошибка при удалении");
         }
@@ -111,19 +151,96 @@ export default function BarbersPage() {
       <div className="tabs-header">
         <h1 className="tabs-title">Парикмахеры</h1>
         <div className="header-actions">
-          <input
-            type="text"
-            placeholder="🔍 Поиск... (нажмите Enter)"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            className="search-input"
-          />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="btn-filter"
+          >
+            🔍 Фильтры {showFilters ? "▲" : "▼"}
+          </button>
           <Link href="/barbers/create" className="btn btn-primary">
             + Добавить
           </Link>
         </div>
       </div>
+
+      {/* Панель фильтров */}
+      {showFilters && (
+        <div className="filters-panel">
+          <div className="filters-grid">
+            <div className="filter-group">
+              <label>ФИО</label>
+              <input
+                type="text"
+                placeholder="Введите ФИО... (Enter для поиска)"
+                value={fioInput}
+                onChange={(e) => setFioInput(e.target.value)}
+                onKeyDown={handleFioKeyDown}
+                onBlur={handleFioBlur}
+                className="filter-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Опыт (лет)</label>
+              <select
+                value={filters.experience}
+                onChange={(e) =>
+                  handleFilterChange("experience", e.target.value)
+                }
+                className="filter-select"
+              >
+                <option value="">Все</option>
+                <option value="0-2">0-2 года</option>
+                <option value="3-5">3-5 лет</option>
+                <option value="6-10">6-10 лет</option>
+                <option value="10+">10+ лет</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Специализация</label>
+              <select
+                value={filters.specialization}
+                onChange={(e) =>
+                  handleFilterChange("specialization", e.target.value)
+                }
+                className="filter-select"
+              >
+                <option value="">Все</option>
+                <option value="Мужские стрижки">Мужские стрижки</option>
+                <option value="Женские стрижки">Женские стрижки</option>
+                <option value="Окрашивание">Окрашивание</option>
+                <option value="Укладка">Укладка</option>
+                <option value="Коррекция бровей">Коррекция бровей</option>
+                <option value="Лечение волос">Лечение волос</option>
+                <option value="Уходовые процедуры">Уходовые процедуры</option>
+                <option value="Наращивание волос">Наращивание волос</option>
+                <option value="Химическая завивка">Химическая завивка</option>
+                <option value="Вечерние прически">Вечерние прически</option>
+                <option value="Свадебные прически">Свадебные прически</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>График</label>
+              <select
+                value={filters.schedule}
+                onChange={(e) => handleFilterChange("schedule", e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Все</option>
+                <option value="5days">5-дневка (ПН-ПТ)</option>
+                <option value="2-2">Сменный 2/2</option>
+                <option value="weekend">Только выходные</option>
+                <option value="full">Полная неделя</option>
+              </select>
+            </div>
+          </div>
+          <div className="filters-actions">
+            <button onClick={resetFilters} className="btn-reset">
+              Сбросить все
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="table-wrapper">
         <table className="table">
           <thead>
@@ -142,7 +259,9 @@ export default function BarbersPage() {
             {barbers.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center">
-                  {searchInput ? "Ничего не найдено" : "Нет парикмахеров"}
+                  {Object.values(filters).some((v) => v)
+                    ? "Ничего не найдено"
+                    : "Нет парикмахеров"}
                 </td>
               </tr>
             ) : (
@@ -218,7 +337,7 @@ export default function BarbersPage() {
         </table>
       </div>
 
-      {/* Модальное окно с расписанием */}
+      {/* Модальные окна (без изменений) */}
       {showSchedule && (
         <div className="modal-overlay" onClick={() => setShowSchedule(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -289,7 +408,6 @@ export default function BarbersPage() {
         </div>
       )}
 
-      {/* Модальное окно с сертификатами */}
       {showCertificates && (
         <div
           className="modal-overlay"

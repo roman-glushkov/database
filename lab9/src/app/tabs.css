@@ -487,3 +487,88 @@
     width: 100%;
   }
 }
+
+/* Кнопка фильтров */
+.btn-filter {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-blue);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.btn-filter:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* Панель фильтров */
+.filters-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  border: 1px solid var(--glass-border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 0.5rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+.filters-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.btn-reset {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  background: rgba(239, 68, 68, 0.2);
+}

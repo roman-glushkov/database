@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET - список парикмахеров с поиском
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
+    const fio = searchParams.get("fio") || "";
+    const experience = searchParams.get("experience") || "";
+    const specialization = searchParams.get("specialization") || "";
+    const schedule = searchParams.get("schedule") || "";
 
     let barbers = await prisma.barber.findMany({
       include: {
@@ -13,32 +15,75 @@ export async function GET(request: NextRequest) {
         _count: {
           select: { works: true },
         },
+        schedules: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    // Фильтрация на стороне сервера (регистронезависимая)
-    if (search) {
-      const searchLower = search.toLowerCase();
+    // Фильтрация по ФИО
+    if (fio) {
+      const fioLower = fio.toLowerCase();
       barbers = barbers.filter((barber) => {
-        return (
-          barber.person.firstName.toLowerCase().includes(searchLower) ||
-          barber.person.lastName.toLowerCase().includes(searchLower) ||
-          (barber.person.middleName &&
-            barber.person.middleName.toLowerCase().includes(searchLower)) ||
-          (barber.person.phone &&
-            barber.person.phone.toLowerCase().includes(searchLower)) ||
-          (barber.person.email &&
-            barber.person.email.toLowerCase().includes(searchLower)) ||
-          (barber.specialization &&
-            barber.specialization.toLowerCase().includes(searchLower))
-        );
+        const fullName = `${barber.person.lastName} ${
+          barber.person.firstName
+        } ${barber.person.middleName || ""}`.toLowerCase();
+        return fullName.includes(fioLower);
       });
     }
 
-    return NextResponse.json(barbers);
+    // Фильтрация по опыту
+    if (experience) {
+      barbers = barbers.filter((barber) => {
+        const exp = barber.experience || 0;
+        switch (experience) {
+          case "0-2":
+            return exp >= 0 && exp <= 2;
+          case "3-5":
+            return exp >= 3 && exp <= 5;
+          case "6-10":
+            return exp >= 6 && exp <= 10;
+          case "10+":
+            return exp >= 10;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Фильтрация по специализации
+    if (specialization) {
+      barbers = barbers.filter(
+        (barber) => barber.specialization === specialization
+      );
+    }
+
+    // Фильтрация по графику
+    if (schedule) {
+      barbers = barbers.filter((barber) => {
+        const barberSchedules = barber.schedules || [];
+        const workingDays = barberSchedules.filter((s) => !s.isDayOff).length;
+
+        switch (schedule) {
+          case "5days":
+            return workingDays === 5;
+          case "2-2":
+            return workingDays === 3 || workingDays === 4;
+          case "weekend":
+            return workingDays === 2;
+          case "full":
+            return workingDays === 7;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Убираем schedules из ответа (чтобы не дублировать)
+    const result = barbers.map(({ schedules, ...rest }) => rest);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching barbers:", error);
     return NextResponse.json(
@@ -48,6 +93,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST, DELETE остаются без изменений
 // POST - создание парикмахера
 export async function POST(request: NextRequest) {
   try {
