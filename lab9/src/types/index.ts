@@ -1,3 +1,4 @@
+export * from "../helpers/types";
 export interface Person {
   id: number;
   firstName: string;
@@ -94,11 +95,4 @@ export interface Appointment {
     person: Person;
   };
   service: Service;
-}
-
-export interface ScheduleFormData {
-  id: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
 }

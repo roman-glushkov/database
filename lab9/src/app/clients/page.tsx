@@ -3,33 +3,33 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Client } from "@/types";
+import { getFullName, formatDate, formatPhone } from "@/helpers/format";
+import { discountOptions, visitsOptions } from "@/helpers/constants";
 import "../tabs.css";
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [filters, setFilters] = useState({
-    fio: "",
-    discount: "",
-    visits: "",
-  });
-  const [fioInput, setFioInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({ fio: "", discount: "", visits: "" });
+  const [fioInput, setFioInput] = useState("");
+
+  const applyFioFilter = () =>
+    setFilters((prev) => ({ ...prev, fio: fioInput }));
+  const handleFioKeyDown = (e: React.KeyboardEvent) =>
+    e.key === "Enter" && applyFioFilter();
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.fio) params.append("fio", filters.fio);
-      if (filters.discount) params.append("discount", filters.discount);
-      if (filters.visits) params.append("visits", filters.visits);
-
-      const res = await fetch(`/api/clients?${params.toString()}`);
+      Object.entries(filters).forEach(
+        ([key, value]) => value && params.append(key, value)
+      );
+      const res = await fetch(`/api/clients?${params}`);
       const data = await res.json();
       setClients(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setClients([]);
     } finally {
       setLoading(false);
@@ -39,22 +39,6 @@ export default function ClientsPage() {
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
-
-  const handleFilterChange = (field: string, value: string) => {
-    if (field !== "fio") {
-      setFilters((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const applyFioFilter = () => {
-    setFilters((prev) => ({ ...prev, fio: fioInput }));
-  };
-
-  const handleFioKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyFioFilter();
-  };
-
-  const handleFioBlur = () => applyFioFilter();
 
   const resetFilters = () => {
     setFilters({ fio: "", discount: "", visits: "" });
@@ -67,21 +51,19 @@ export default function ClientsPage() {
     firstName: string
   ) => {
     if (
-      confirm(
+      !confirm(
         `Удалить клиента ${lastName} ${firstName}? Все его записи также будут удалены.`
       )
-    ) {
-      try {
-        const res = await fetch(`/api/clients?id=${id}`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Клиент удален");
-          fetchClients();
-        } else {
-          alert("Ошибка при удалении");
-        }
-      } catch {
-        alert("Ошибка при удалении");
-      }
+    )
+      return;
+    try {
+      const res = await fetch(`/api/clients?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Клиент удален");
+        fetchClients();
+      } else alert("Ошибка при удалении");
+    } catch {
+      alert("Ошибка при удалении");
     }
   };
 
@@ -115,7 +97,7 @@ export default function ClientsPage() {
                 value={fioInput}
                 onChange={(e) => setFioInput(e.target.value)}
                 onKeyDown={handleFioKeyDown}
-                onBlur={handleFioBlur}
+                onBlur={applyFioFilter}
                 className="filter-input"
               />
             </div>
@@ -123,28 +105,34 @@ export default function ClientsPage() {
               <label>Скидка (%)</label>
               <select
                 value={filters.discount}
-                onChange={(e) => handleFilterChange("discount", e.target.value)}
+                onChange={(e) =>
+                  setFilters((p) => ({ ...p, discount: e.target.value }))
+                }
                 className="filter-select"
               >
                 <option value="">Все</option>
-                <option value="0">0%</option>
-                <option value="1-10">1-10%</option>
-                <option value="11-20">11-20%</option>
-                <option value="20+">20%+</option>
+                {discountOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="filter-group">
               <label>Количество визитов</label>
               <select
                 value={filters.visits}
-                onChange={(e) => handleFilterChange("visits", e.target.value)}
+                onChange={(e) =>
+                  setFilters((p) => ({ ...p, visits: e.target.value }))
+                }
                 className="filter-select"
               >
                 <option value="">Все</option>
-                <option value="0">Нет визитов</option>
-                <option value="1-3">1-3 визита</option>
-                <option value="4-10">4-10 визитов</option>
-                <option value="10+">10+ визитов</option>
+                {visitsOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -181,24 +169,15 @@ export default function ClientsPage() {
             ) : (
               clients.map((c) => (
                 <tr key={c.id}>
-                  <td className="text-left">
-                    {c.person.lastName} {c.person.firstName}{" "}
-                    {c.person.middleName || ""}
-                  </td>
+                  <td className="text-left">{getFullName(c.person)}</td>
                   <td className="text-center">
-                    {c.person.birthDate
-                      ? new Date(c.person.birthDate).toLocaleDateString("ru-RU")
-                      : "-"}
+                    {formatDate(c.person.birthDate)}
                   </td>
-                  <td className="text-center">{c.person.phone || "-"}</td>
+                  <td className="text-center">{formatPhone(c.person.phone)}</td>
                   <td className="text-center">
                     {c.discount ? `${c.discount}%` : "-"}
                   </td>
-                  <td className="text-center">
-                    {c.firstVisit
-                      ? new Date(c.firstVisit).toLocaleDateString("ru-RU")
-                      : "-"}
-                  </td>
+                  <td className="text-center">{formatDate(c.firstVisit)}</td>
                   <td className="text-center">{c._count?.works || 0}</td>
                   <td className="action-buttons">
                     <Link

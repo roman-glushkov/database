@@ -4,9 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Barber, Schedule } from "@/types";
+import { getFullName, formatDate, formatPhone } from "@/helpers/format";
+import {
+  days,
+  experienceOptions,
+  specializationOptions,
+  scheduleOptions,
+} from "@/helpers/constants";
 import "../tabs.css";
-
-const days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 
 export default function BarbersPage() {
   const router = useRouter();
@@ -15,6 +20,7 @@ export default function BarbersPage() {
   const [loading, setLoading] = useState(true);
   const [showSchedule, setShowSchedule] = useState<number | null>(null);
   const [showCertificates, setShowCertificates] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const [filters, setFilters] = useState({
     fio: "",
@@ -23,20 +29,41 @@ export default function BarbersPage() {
     schedule: "",
   });
   const [fioInput, setFioInput] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+
+  const applyFioFilter = () =>
+    setFilters((prev) => ({ ...prev, fio: fioInput }));
+  const handleFioKeyDown = (e: React.KeyboardEvent) =>
+    e.key === "Enter" && applyFioFilter();
+
+  const parseCertificates = (certificates: string | null) => {
+    if (!certificates) return null;
+    try {
+      const parsed = JSON.parse(certificates);
+      if (Array.isArray(parsed)) return parsed;
+      return [parsed];
+    } catch {
+      return [certificates];
+    }
+  };
+
+  const getScheduleText = (barberId: number) => {
+    const barberSchedule = schedules[barberId] || [];
+    if (barberSchedule.length === 0) return "Не указано";
+    const workingDays = barberSchedule.filter((s) => !s.isDayOff);
+    if (workingDays.length === 0) return "Выходные все дни";
+    return `${workingDays.length} рабочих дней`;
+  };
 
   const fetchBarbers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.fio) params.append("fio", filters.fio);
-      if (filters.experience) params.append("experience", filters.experience);
-      if (filters.specialization)
-        params.append("specialization", filters.specialization);
-      if (filters.schedule) params.append("schedule", filters.schedule);
+      Object.entries(filters).forEach(
+        ([key, value]) => value && params.append(key, value)
+      );
 
       const [barbersRes, schedulesRes] = await Promise.all([
-        fetch(`/api/barbers?${params.toString()}`),
+        fetch(`/api/barbers?${params}`),
         fetch("/api/schedules"),
       ]);
 
@@ -52,10 +79,8 @@ export default function BarbersPage() {
         acc[s.barberId].push(s);
         return acc;
       }, {});
-
       setSchedules(grouped);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setBarbers([]);
     } finally {
       setLoading(false);
@@ -66,57 +91,9 @@ export default function BarbersPage() {
     fetchBarbers();
   }, [fetchBarbers]);
 
-  const handleFilterChange = (field: string, value: string) => {
-    if (field !== "fio") {
-      setFilters((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const applyFioFilter = () => {
-    setFilters((prev) => ({ ...prev, fio: fioInput }));
-  };
-
-  const handleFioKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyFioFilter();
-  };
-
-  const handleFioBlur = () => applyFioFilter();
-
   const resetFilters = () => {
-    setFilters({
-      fio: "",
-      experience: "",
-      specialization: "",
-      schedule: "",
-    });
+    setFilters({ fio: "", experience: "", specialization: "", schedule: "" });
     setFioInput("");
-  };
-
-  const getScheduleText = (barberId: number) => {
-    const barberSchedule = schedules[barberId] || [];
-    if (barberSchedule.length === 0) return "Не указано";
-    const workingDays = barberSchedule.filter((s) => !s.isDayOff);
-    if (workingDays.length === 0) return "Выходные все дни";
-    return `${workingDays.length} рабочих дней`;
-  };
-
-  const handleScheduleClick = (barberId: number) => {
-    setShowSchedule(barberId);
-  };
-
-  const handleAddDay = (barberId: number) => {
-    router.push(`/schedules/create?barberId=${barberId}`);
-  };
-
-  const parseCertificates = (certificates: string | null) => {
-    if (!certificates) return null;
-    try {
-      const parsed = JSON.parse(certificates);
-      if (Array.isArray(parsed)) return parsed;
-      return [parsed];
-    } catch {
-      return [certificates];
-    }
   };
 
   const handleDelete = async (
@@ -124,18 +101,15 @@ export default function BarbersPage() {
     lastName: string,
     firstName: string
   ) => {
-    if (confirm(`Удалить парикмахера ${lastName} ${firstName}?`)) {
-      try {
-        const res = await fetch(`/api/barbers?id=${id}`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Парикмахер удален");
-          fetchBarbers();
-        } else {
-          alert("Ошибка при удалении");
-        }
-      } catch {
-        alert("Ошибка при удалении");
-      }
+    if (!confirm(`Удалить парикмахера ${lastName} ${firstName}?`)) return;
+    try {
+      const res = await fetch(`/api/barbers?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Парикмахер удален");
+        fetchBarbers();
+      } else alert("Ошибка при удалении");
+    } catch {
+      alert("Ошибка при удалении");
     }
   };
 
@@ -169,7 +143,7 @@ export default function BarbersPage() {
                 value={fioInput}
                 onChange={(e) => setFioInput(e.target.value)}
                 onKeyDown={handleFioKeyDown}
-                onBlur={handleFioBlur}
+                onBlur={applyFioFilter}
                 className="filter-input"
               />
             </div>
@@ -178,15 +152,16 @@ export default function BarbersPage() {
               <select
                 value={filters.experience}
                 onChange={(e) =>
-                  handleFilterChange("experience", e.target.value)
+                  setFilters((p) => ({ ...p, experience: e.target.value }))
                 }
                 className="filter-select"
               >
                 <option value="">Все</option>
-                <option value="0-2">0-2 года</option>
-                <option value="3-5">3-5 лет</option>
-                <option value="6-10">6-10 лет</option>
-                <option value="10+">10+ лет</option>
+                {experienceOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="filter-group">
@@ -194,36 +169,33 @@ export default function BarbersPage() {
               <select
                 value={filters.specialization}
                 onChange={(e) =>
-                  handleFilterChange("specialization", e.target.value)
+                  setFilters((p) => ({ ...p, specialization: e.target.value }))
                 }
                 className="filter-select"
               >
                 <option value="">Все</option>
-                <option value="Мужские стрижки">Мужские стрижки</option>
-                <option value="Женские стрижки">Женские стрижки</option>
-                <option value="Окрашивание">Окрашивание</option>
-                <option value="Укладка">Укладка</option>
-                <option value="Коррекция бровей">Коррекция бровей</option>
-                <option value="Лечение волос">Лечение волос</option>
-                <option value="Уходовые процедуры">Уходовые процедуры</option>
-                <option value="Наращивание волос">Наращивание волос</option>
-                <option value="Химическая завивка">Химическая завивка</option>
-                <option value="Вечерние прически">Вечерние прически</option>
-                <option value="Свадебные прически">Свадебные прически</option>
+                {specializationOptions.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="filter-group">
               <label>График</label>
               <select
                 value={filters.schedule}
-                onChange={(e) => handleFilterChange("schedule", e.target.value)}
+                onChange={(e) =>
+                  setFilters((p) => ({ ...p, schedule: e.target.value }))
+                }
                 className="filter-select"
               >
                 <option value="">Все</option>
-                <option value="5days">5-дневка (ПН-ПТ)</option>
-                <option value="2-2">Сменный 2/2</option>
-                <option value="weekend">Только выходные</option>
-                <option value="full">Полная неделя</option>
+                {scheduleOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -262,21 +234,15 @@ export default function BarbersPage() {
               barbers.map((b) => {
                 const certificates = parseCertificates(b.certificates);
                 const hasCertificates = certificates && certificates.length > 0;
-
                 return (
                   <tr key={b.id}>
-                    <td className="text-left">
-                      {b.person.lastName} {b.person.firstName}{" "}
-                      {b.person.middleName || ""}
+                    <td className="text-left">{getFullName(b.person)}</td>
+                    <td className="text-center">
+                      {formatDate(b.person.birthDate)}
                     </td>
                     <td className="text-center">
-                      {b.person.birthDate
-                        ? new Date(b.person.birthDate).toLocaleDateString(
-                            "ru-RU"
-                          )
-                        : "-"}
+                      {formatPhone(b.person.phone)}
                     </td>
-                    <td className="text-center">{b.person.phone || "-"}</td>
                     <td className="text-center">
                       {b.experience ? `${b.experience} лет` : "-"}
                     </td>
@@ -295,7 +261,7 @@ export default function BarbersPage() {
                     </td>
                     <td className="text-center">
                       <button
-                        onClick={() => handleScheduleClick(b.id)}
+                        onClick={() => setShowSchedule(b.id)}
                         className="btn-schedule-link"
                       >
                         <span className="badge badge-info schedule-badge">
@@ -331,6 +297,7 @@ export default function BarbersPage() {
         </table>
       </div>
 
+      {/* Модальное окно расписания */}
       {showSchedule && (
         <div className="modal-overlay" onClick={() => setShowSchedule(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -391,7 +358,9 @@ export default function BarbersPage() {
             </div>
             <div className="modal-footer">
               <button
-                onClick={() => handleAddDay(showSchedule)}
+                onClick={() =>
+                  router.push(`/schedules/create?barberId=${showSchedule}`)
+                }
                 className="btn btn-primary"
               >
                 Редактировать
@@ -401,6 +370,7 @@ export default function BarbersPage() {
         </div>
       )}
 
+      {/* Модальное окно сертификатов */}
       {showCertificates && (
         <div
           className="modal-overlay"

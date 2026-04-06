@@ -4,27 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Barber, Client, Service, Schedule } from "@/types";
-
-interface ExistingAppointment {
-  id: number;
-  date: string;
-  service: { duration: number };
-}
-
-const categories = [
-  "Мужские стрижки",
-  "Женские стрижки",
-  "Окрашивание",
-  "Укладка",
-  "Стрижка + укладка",
-  "Коррекция бровей",
-  "Лечение волос",
-  "Уходовые процедуры",
-  "Наращивание волос",
-  "Химическая завивка",
-  "Вечерние прически",
-  "Свадебные прически",
-];
+import { getFullName, formatDate } from "@/helpers/format";
+import { categories, categorySpecializations } from "@/helpers/constants";
+import { generateTimeSlots, ExistingAppointment } from "@/helpers/timeSlots";
 
 export default function CreateAppointmentPage() {
   const router = useRouter();
@@ -45,21 +27,20 @@ export default function CreateAppointmentPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
-  // Доступные услуги (фильтрованные по категории)
+  // Производные состояния
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
-
-  // Доступные парикмахеры (фильтрованные по специализации услуги)
   const [availableBarbers, setAvailableBarbers] = useState<Barber[]>([]);
-
-  // Доступные временные слоты
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [barberWorkTime, setBarberWorkTime] = useState<{
     start: string;
     end: string;
-    isDayOff: boolean;
   } | null>(null);
 
-  // Загружаем базовые данные
+  const selectedClientData = clients.find(
+    (c) => c.id === parseInt(selectedClient)
+  );
+
+  // Загрузка данных
   useEffect(() => {
     Promise.all([
       fetch("/api/barbers").then((res) => res.json()),
@@ -76,11 +57,12 @@ export default function CreateAppointmentPage() {
       .catch(console.error);
   }, []);
 
-  // Обновляем услуги при выборе категории
+  // Фильтр услуг по категории
   useEffect(() => {
     if (selectedCategory) {
-      const filtered = services.filter((s) => s.category === selectedCategory);
-      setAvailableServices(filtered);
+      setAvailableServices(
+        services.filter((s) => s.category === selectedCategory)
+      );
     } else {
       setAvailableServices([]);
     }
@@ -91,74 +73,20 @@ export default function CreateAppointmentPage() {
     setAvailableTimeSlots([]);
   }, [selectedCategory, services]);
 
-  // Обновляем парикмахеров при выборе услуги
-  // Обновляем парикмахеров при выборе услуги
+  // Фильтр парикмахеров по специализации услуги
   useEffect(() => {
-    if (selectedService) {
-      const category = selectedService.category;
-
-      let filtered = barbers;
-
-      // Фильтруем по категории услуги
-      if (category === "Мужские стрижки") {
-        filtered = barbers.filter(
-          (b) => b.specialization === "Мужские стрижки"
+    if (selectedService?.category) {
+      const specializations = categorySpecializations[selectedService.category];
+      if (specializations) {
+        setAvailableBarbers(
+          barbers.filter(
+            (b) =>
+              b.specialization && specializations.includes(b.specialization)
+          )
         );
-      } else if (category === "Женские стрижки") {
-        filtered = barbers.filter(
-          (b) => b.specialization === "Женские стрижки"
-        );
-      } else if (category === "Окрашивание") {
-        filtered = barbers.filter((b) => b.specialization === "Окрашивание");
-      } else if (category === "Укладка") {
-        filtered = barbers.filter((b) => b.specialization === "Укладка");
-      } else if (category === "Стрижка + укладка") {
-        filtered = barbers.filter(
-          (b) =>
-            b.specialization === "Мужские стрижки" ||
-            b.specialization === "Женские стрижки" ||
-            b.specialization === "Укладка"
-        );
-      } else if (category === "Коррекция бровей") {
-        filtered = barbers.filter(
-          (b) => b.specialization === "Коррекция бровей"
-        );
-      } else if (category === "Лечение волос") {
-        filtered = barbers.filter(
-          (b) =>
-            b.specialization === "Лечение волос" ||
-            b.specialization === "Уходовые процедуры"
-        );
-      } else if (category === "Уходовые процедуры") {
-        filtered = barbers.filter(
-          (b) =>
-            b.specialization === "Уходовые процедуры" ||
-            b.specialization === "Лечение волос"
-        );
-      } else if (category === "Наращивание волос") {
-        filtered = barbers.filter(
-          (b) => b.specialization === "Наращивание волос"
-        );
-      } else if (category === "Химическая завивка") {
-        filtered = barbers.filter(
-          (b) => b.specialization === "Химическая завивка"
-        );
-      } else if (category === "Вечерние прически") {
-        filtered = barbers.filter(
-          (b) =>
-            b.specialization === "Вечерние прически" ||
-            b.specialization === "Укладка"
-        );
-      } else if (category === "Свадебные прически") {
-        filtered = barbers.filter(
-          (b) =>
-            b.specialization === "Свадебные прически" ||
-            b.specialization === "Вечерние прически" ||
-            b.specialization === "Укладка"
-        );
+      } else {
+        setAvailableBarbers([]);
       }
-
-      setAvailableBarbers(filtered);
     } else {
       setAvailableBarbers([]);
     }
@@ -168,92 +96,67 @@ export default function CreateAppointmentPage() {
     setAvailableTimeSlots([]);
   }, [selectedService, barbers]);
 
-  // Проверяем расписание парикмахера и загружаем доступные слоты
+  // Генерация временных слотов
   useEffect(() => {
-    if (selectedBarber && selectedDate && selectedService) {
-      const date = new Date(selectedDate);
-      const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
-
-      // Получаем расписание на этот день
-      const schedule = schedules.find(
-        (s) => s.barberId === selectedBarber.id && s.dayOfWeek === dayOfWeek
-      );
-
-      if (!schedule || schedule.isDayOff) {
-        setBarberWorkTime(null);
-        setAvailableTimeSlots([]);
-        return;
-      }
-
-      setBarberWorkTime({
-        start: schedule.startTime || "09:00",
-        end: schedule.endTime || "18:00",
-        isDayOff: false,
-      });
-
-      // Загружаем существующие записи парикмахера на эту дату
-      fetch(
-        `/api/appointments?barberId=${selectedBarber.id}&date=${selectedDate}`
-      )
-        .then((res) => res.json())
-        .then((existingAppointments: ExistingAppointment[]) => {
-          const duration = selectedService.duration;
-          const startHour = parseInt(schedule.startTime?.split(":")[0] || "9");
-          const startMin = parseInt(schedule.startTime?.split(":")[1] || "0");
-          const endHour = parseInt(schedule.endTime?.split(":")[0] || "18");
-          const endMin = parseInt(schedule.endTime?.split(":")[1] || "0");
-
-          const slots: string[] = [];
-          let currentHour = startHour;
-          let currentMin = startMin;
-
-          while (
-            currentHour < endHour ||
-            (currentHour === endHour && currentMin <= endMin - duration)
-          ) {
-            const timeStr = `${currentHour
-              .toString()
-              .padStart(2, "0")}:${currentMin.toString().padStart(2, "0")}`;
-
-            // Проверяем, не занято ли время
-            const isBusy = existingAppointments.some((app) => {
-              const appTime = new Date(app.date);
-              const appHour = appTime.getHours();
-              const appMin = appTime.getMinutes();
-              const appEndHour =
-                appHour + Math.floor((appMin + app.service.duration) / 60);
-              const appEndMin = (appMin + app.service.duration) % 60;
-
-              const slotEndHour =
-                currentHour + Math.floor((currentMin + duration) / 60);
-              const slotEndMin = (currentMin + duration) % 60;
-
-              return (
-                (currentHour < appEndHour ||
-                  (currentHour === appEndHour && currentMin < appEndMin)) &&
-                (slotEndHour > appHour ||
-                  (slotEndHour === appHour && slotEndMin > appMin))
-              );
-            });
-
-            if (!isBusy) {
-              slots.push(timeStr);
-            }
-
-            currentMin += 30;
-            if (currentMin >= 60) {
-              currentHour++;
-              currentMin -= 60;
-            }
-          }
-
-          setAvailableTimeSlots(slots);
-        })
-        .catch(console.error);
-    } else {
+    if (!selectedBarber || !selectedDate || !selectedService) {
       setAvailableTimeSlots([]);
+      return;
     }
+
+    const date = new Date(selectedDate);
+    const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
+    const schedule = schedules.find(
+      (s) => s.barberId === selectedBarber.id && s.dayOfWeek === dayOfWeek
+    );
+
+    if (!schedule || schedule.isDayOff) {
+      setBarberWorkTime(null);
+      setAvailableTimeSlots([]);
+      return;
+    }
+
+    const startTime = schedule.startTime || "09:00";
+    const endTime = schedule.endTime || "18:00";
+    setBarberWorkTime({ start: startTime, end: endTime });
+
+    fetch(
+      `/api/appointments?barberId=${selectedBarber.id}&date=${selectedDate}`
+    )
+      .then((res) => res.json())
+      .then((existing: ExistingAppointment[]) => {
+        const slots = generateTimeSlots(
+          startTime,
+          endTime,
+          selectedService.duration || 60,
+          existing
+        );
+        setAvailableTimeSlots(slots);
+      })
+      .catch(console.error);
   }, [selectedBarber, selectedDate, selectedService, schedules]);
+
+  const resetToStep = (newStep: number) => {
+    setStep(newStep);
+    if (newStep === 1) {
+      setSelectedCategory("");
+      setSelectedService(null);
+      setSelectedBarber(null);
+      setSelectedDate("");
+      setSelectedTime("");
+    } else if (newStep === 2) {
+      setSelectedService(null);
+      setSelectedBarber(null);
+      setSelectedDate("");
+      setSelectedTime("");
+    } else if (newStep === 3) {
+      setSelectedBarber(null);
+      setSelectedDate("");
+      setSelectedTime("");
+    } else if (newStep === 4) {
+      setSelectedDate("");
+      setSelectedTime("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,30 +197,6 @@ export default function CreateAppointmentPage() {
       alert("Ошибка при создании записи");
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Сброс до шага
-  const resetToStep = (newStep: number) => {
-    setStep(newStep);
-    if (newStep === 1) {
-      setSelectedCategory("");
-      setSelectedService(null);
-      setSelectedBarber(null);
-      setSelectedDate("");
-      setSelectedTime("");
-    } else if (newStep === 2) {
-      setSelectedService(null);
-      setSelectedBarber(null);
-      setSelectedDate("");
-      setSelectedTime("");
-    } else if (newStep === 3) {
-      setSelectedBarber(null);
-      setSelectedDate("");
-      setSelectedTime("");
-    } else if (newStep === 4) {
-      setSelectedDate("");
-      setSelectedTime("");
     }
   };
 
@@ -368,7 +247,7 @@ export default function CreateAppointmentPage() {
                   <option value="">Выберите клиента</option>
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.person.lastName} {c.person.firstName}
+                      {getFullName(c.person)}
                     </option>
                   ))}
                 </select>
@@ -472,8 +351,7 @@ export default function CreateAppointmentPage() {
                   <option value="">Выберите парикмахера</option>
                   {availableBarbers.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.person.lastName} {b.person.firstName} (
-                      {b.specialization})
+                      {getFullName(b.person)} ({b.specialization})
                     </option>
                   ))}
                 </select>
@@ -506,8 +384,8 @@ export default function CreateAppointmentPage() {
                 <strong>Услуга:</strong> {selectedService?.name} (
                 {selectedService?.duration} мин)
                 <br />
-                <strong>Парикмахер:</strong> {selectedBarber?.person.lastName}{" "}
-                {selectedBarber?.person.firstName}
+                <strong>Парикмахер:</strong>{" "}
+                {selectedBarber && getFullName(selectedBarber.person)}
               </div>
 
               <div className="form-group">
@@ -588,14 +466,7 @@ export default function CreateAppointmentPage() {
                 <h3>Подтверждение записи</h3>
                 <p>
                   <strong>Клиент:</strong>{" "}
-                  {
-                    clients.find((c) => c.id === parseInt(selectedClient))
-                      ?.person.lastName
-                  }{" "}
-                  {
-                    clients.find((c) => c.id === parseInt(selectedClient))
-                      ?.person.firstName
-                  }
+                  {selectedClientData && getFullName(selectedClientData.person)}
                 </p>
                 <p>
                   <strong>Услуга:</strong> {selectedService?.name}
@@ -607,12 +478,11 @@ export default function CreateAppointmentPage() {
                   <strong>Цена:</strong> {selectedService?.price} ₽
                 </p>
                 <p>
-                  <strong>Парикмахер:</strong> {selectedBarber?.person.lastName}{" "}
-                  {selectedBarber?.person.firstName}
+                  <strong>Парикмахер:</strong>{" "}
+                  {selectedBarber && getFullName(selectedBarber.person)}
                 </p>
                 <p>
-                  <strong>Дата:</strong>{" "}
-                  {new Date(selectedDate).toLocaleDateString("ru-RU")}
+                  <strong>Дата:</strong> {formatDate(selectedDate)}
                 </p>
                 <p>
                   <strong>Время:</strong> {selectedTime}

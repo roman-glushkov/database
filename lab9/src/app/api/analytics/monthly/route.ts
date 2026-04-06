@@ -27,11 +27,10 @@ export async function GET() {
   }
 
   // Сортируем ОТ СТАРЫХ К НОВЫМ (по возрастанию)
-  const sorted = Array.from(monthlyMap.values()).sort((a, b) => {
-    const dateA = new Date(a.month);
-    const dateB = new Date(b.month);
-    return dateA.getTime() - dateB.getTime(); // старые → новые
-  });
+  // Сортируем ОТ СТАРЫХ К НОВЫМ (по возрастанию)
+  const sorted = Array.from(monthlyMap.entries())
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    .map(([, value]) => value);
 
   return NextResponse.json(sorted);
 }

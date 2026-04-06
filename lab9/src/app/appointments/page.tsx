@@ -4,20 +4,17 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import "../tabs.css";
+import { formatDateTime } from "@/helpers/format";
+import type { Appointment } from "@/types";
 
-interface Appointment {
-  id: number;
-  date: string;
-  status: string;
-  client: { person: { firstName: string; lastName: string } };
-  barber: { person: { firstName: string; lastName: string } };
-  service: { name: string; price: number; duration: number };
-}
+const getFullName = (person: { firstName: string; lastName: string }) =>
+  `${person.lastName} ${person.firstName}`;
 
 export default function AppointmentsPage() {
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   const [filters, setFilters] = useState({
     client: "",
@@ -26,27 +23,33 @@ export default function AppointmentsPage() {
     dateFrom: "",
     dateTo: "",
   });
-  const [clientInput, setClientInput] = useState("");
-  const [barberInput, setBarberInput] = useState("");
-  const [serviceInput, setServiceInput] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+
+  const [filterInputs, setFilterInputs] = useState({
+    client: "",
+    barber: "",
+    service: "",
+  });
+
+  const applyFilter = (field: "client" | "barber" | "service") => {
+    setFilters((prev) => ({ ...prev, [field]: filterInputs[field] }));
+  };
+
+  const handleKeyDown =
+    (field: "client" | "barber" | "service") => (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") applyFilter(field);
+    };
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append("status", "pending");
-      if (filters.client) params.append("client", filters.client);
-      if (filters.barber) params.append("barber", filters.barber);
-      if (filters.service) params.append("service", filters.service);
-      if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
-      if (filters.dateTo) params.append("dateTo", filters.dateTo);
-
-      const res = await fetch(`/api/appointments?${params.toString()}`);
+      const params = new URLSearchParams({ status: "pending" });
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      const res = await fetch(`/api/appointments?${params}`);
       const data = await res.json();
       setAppointments(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setAppointments([]);
     } finally {
       setLoading(false);
@@ -57,32 +60,6 @@ export default function AppointmentsPage() {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  const handleFilterChange = (field: string, value: string) => {
-    if (field !== "client" && field !== "barber" && field !== "service") {
-      setFilters((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const applyClientFilter = () =>
-    setFilters((prev) => ({ ...prev, client: clientInput }));
-  const applyBarberFilter = () =>
-    setFilters((prev) => ({ ...prev, barber: barberInput }));
-  const applyServiceFilter = () =>
-    setFilters((prev) => ({ ...prev, service: serviceInput }));
-
-  const handleClientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyClientFilter();
-  };
-  const handleClientBlur = () => applyClientFilter();
-  const handleBarberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyBarberFilter();
-  };
-  const handleBarberBlur = () => applyBarberFilter();
-  const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyServiceFilter();
-  };
-  const handleServiceBlur = () => applyServiceFilter();
-
   const resetFilters = () => {
     setFilters({
       client: "",
@@ -91,49 +68,28 @@ export default function AppointmentsPage() {
       dateFrom: "",
       dateTo: "",
     });
-    setClientInput("");
-    setBarberInput("");
-    setServiceInput("");
+    setFilterInputs({ client: "", barber: "", service: "" });
   };
 
-  const handleComplete = async (id: number) => {
-    if (
-      confirm(
-        "Отметить запись как выполненную? Она переместится в выполненные работы."
-      )
-    ) {
-      try {
-        const res = await fetch(`/api/appointments?id=${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "completed" }),
-        });
-        if (res.ok) {
-          alert("Запись выполнена и перенесена в работы");
-          fetchAppointments();
-          router.push("/works");
-        } else alert("Ошибка");
-      } catch {
-        alert("Ошибка");
-      }
-    }
-  };
-
-  const handleCancel = async (id: number) => {
-    if (confirm("Отменить запись?")) {
-      try {
-        const res = await fetch(`/api/appointments?id=${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "cancelled" }),
-        });
-        if (res.ok) {
-          alert("Запись отменена");
-          fetchAppointments();
-        } else alert("Ошибка");
-      } catch {
-        alert("Ошибка");
-      }
+  const updateStatus = async (
+    id: number,
+    status: "completed" | "cancelled",
+    message: string
+  ) => {
+    if (!confirm(message)) return;
+    try {
+      const res = await fetch(`/api/appointments?id=${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        alert(status === "completed" ? "Запись выполнена" : "Запись отменена");
+        fetchAppointments();
+        if (status === "completed") router.push("/works");
+      } else alert("Ошибка");
+    } catch {
+      alert("Ошибка");
     }
   };
 
@@ -159,48 +115,49 @@ export default function AppointmentsPage() {
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">
-            <div className="filter-group">
-              <label>Клиент</label>
-              <input
-                type="text"
-                placeholder="Введите ФИО клиента..."
-                value={clientInput}
-                onChange={(e) => setClientInput(e.target.value)}
-                onKeyDown={handleClientKeyDown}
-                onBlur={handleClientBlur}
-                className="filter-input"
-              />
-            </div>
-            <div className="filter-group">
-              <label>Парикмахер</label>
-              <input
-                type="text"
-                placeholder="Введите ФИО парикмахера..."
-                value={barberInput}
-                onChange={(e) => setBarberInput(e.target.value)}
-                onKeyDown={handleBarberKeyDown}
-                onBlur={handleBarberBlur}
-                className="filter-input"
-              />
-            </div>
-            <div className="filter-group">
-              <label>Услуга</label>
-              <input
-                type="text"
-                placeholder="Введите название услуги..."
-                value={serviceInput}
-                onChange={(e) => setServiceInput(e.target.value)}
-                onKeyDown={handleServiceKeyDown}
-                onBlur={handleServiceBlur}
-                className="filter-input"
-              />
-            </div>
+            {[
+              {
+                label: "Клиент",
+                field: "client" as const,
+                placeholder: "Введите ФИО клиента...",
+              },
+              {
+                label: "Парикмахер",
+                field: "barber" as const,
+                placeholder: "Введите ФИО парикмахера...",
+              },
+              {
+                label: "Услуга",
+                field: "service" as const,
+                placeholder: "Введите название услуги...",
+              },
+            ].map(({ label, field, placeholder }) => (
+              <div key={field} className="filter-group">
+                <label>{label}</label>
+                <input
+                  type="text"
+                  placeholder={placeholder}
+                  value={filterInputs[field]}
+                  onChange={(e) =>
+                    setFilterInputs((prev) => ({
+                      ...prev,
+                      [field]: e.target.value,
+                    }))
+                  }
+                  onKeyDown={handleKeyDown(field)}
+                  onBlur={() => applyFilter(field)}
+                  className="filter-input"
+                />
+              </div>
+            ))}
             <div className="filter-group">
               <label>Дата от</label>
               <input
                 type="date"
                 value={filters.dateFrom}
-                onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))
+                }
                 className="filter-input"
               />
             </div>
@@ -209,7 +166,9 @@ export default function AppointmentsPage() {
               <input
                 type="date"
                 value={filters.dateTo}
-                onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, dateTo: e.target.value }))
+                }
                 className="filter-input"
               />
             </div>
@@ -247,27 +206,29 @@ export default function AppointmentsPage() {
             ) : (
               appointments.map((a) => (
                 <tr key={a.id}>
-                  <td className="text-center">
-                    {new Date(a.date).toLocaleString("ru-RU")}
-                  </td>
-                  <td className="text-left">
-                    {a.client.person.lastName} {a.client.person.firstName}
-                  </td>
-                  <td className="text-left">
-                    {a.barber.person.lastName} {a.barber.person.firstName}
-                  </td>
+                  <td className="text-center">{formatDateTime(a.date)}</td>
+                  <td className="text-left">{getFullName(a.client.person)}</td>
+                  <td className="text-left">{getFullName(a.barber.person)}</td>
                   <td className="text-left">{a.service.name}</td>
                   <td className="text-center">{a.service.duration} мин</td>
                   <td className="text-center">{a.service.price} ₽</td>
                   <td className="action-buttons">
                     <button
-                      onClick={() => handleComplete(a.id)}
+                      onClick={() =>
+                        updateStatus(
+                          a.id,
+                          "completed",
+                          "Отметить как выполненную?"
+                        )
+                      }
                       className="btn-success"
                     >
                       ✓ Выполнено
                     </button>
                     <button
-                      onClick={() => handleCancel(a.id)}
+                      onClick={() =>
+                        updateStatus(a.id, "cancelled", "Отменить запись?")
+                      }
                       className="btn-danger"
                     >
                       ✗ Отмена
