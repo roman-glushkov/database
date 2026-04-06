@@ -2,21 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Schedule } from "@/types";
 import "../tabs.css";
-
-interface Schedule {
-  id: number;
-  dayOfWeek: number;
-  startTime: string | null;
-  endTime: string | null;
-  isDayOff: boolean;
-  barber: {
-    person: {
-      firstName: string;
-      lastName: string;
-    };
-  };
-}
 
 const days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 

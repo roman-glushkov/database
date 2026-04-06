@@ -97,3 +97,10 @@ export interface Appointment {
   };
   service: Service;
 }
+
+export interface ScheduleFormData {
+  id: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}

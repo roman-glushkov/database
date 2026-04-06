@@ -3,34 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import "../../forms.css";
-
-interface Barber {
-  id: number;
-  person: { firstName: string; lastName: string };
-  specialization: string;
-}
-
-interface Client {
-  id: number;
-  person: { firstName: string; lastName: string };
-}
-
-interface Service {
-  id: number;
-  name: string;
-  duration: number;
-  price: number;
-  category: string;
-}
-
-interface Schedule {
-  id: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isDayOff: boolean;
-}
+import { Barber, Client, Service, Schedule } from "@/types";
 
 interface ExistingAppointment {
   id: number;

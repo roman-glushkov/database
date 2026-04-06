@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Barber, Schedule } from "@/types";
+import { Barber, Schedule, ScheduleFormData } from "@/types";
 import "../../forms.css";
 
 const days = [
@@ -15,13 +15,6 @@ const days = [
   { value: 6, label: "Суббота" },
   { value: 7, label: "Воскресенье" },
 ];
-
-interface ScheduleFormData {
-  id: number;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-}
 
 export default function CreateSchedulePage() {
   const router = useRouter();
