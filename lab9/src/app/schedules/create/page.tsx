@@ -23,9 +23,7 @@ export default function CreateSchedulePage() {
 
   const [loading, setLoading] = useState(false);
   const [barbers, setBarbers] = useState<Barber[]>([]);
-  const [selectedBarberId, setSelectedBarberId] = useState(
-    presetBarberId || ""
-  );
+  const [selectedBarberId] = useState(presetBarberId || "");
   const [schedules, setSchedules] = useState<Record<number, ScheduleFormData>>(
     {}
   );
@@ -85,7 +83,6 @@ export default function CreateSchedulePage() {
         const hasData = schedule.startTime || schedule.endTime;
         if (!hasData) continue;
 
-        // Если есть только одно время - ошибка
         if (
           (schedule.startTime && !schedule.endTime) ||
           (!schedule.startTime && schedule.endTime)
@@ -141,7 +138,6 @@ export default function CreateSchedulePage() {
         <Link href="/barbers" className="btn-back">
           ← Назад к парикмахерам
         </Link>
-
         <h1 className="form-title">Редактирование расписания</h1>
 
         {selectedBarber && (

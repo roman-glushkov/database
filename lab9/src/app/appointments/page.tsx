@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import "../tabs.css";
@@ -9,17 +9,9 @@ interface Appointment {
   id: number;
   date: string;
   status: string;
-  client: {
-    person: { firstName: string; lastName: string };
-  };
-  barber: {
-    person: { firstName: string; lastName: string };
-  };
-  service: {
-    name: string;
-    price: number;
-    duration: number;
-  };
+  client: { person: { firstName: string; lastName: string } };
+  barber: { person: { firstName: string; lastName: string } };
+  service: { name: string; price: number; duration: number };
 }
 
 export default function AppointmentsPage() {
@@ -27,7 +19,6 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Фильтры
   const [filters, setFilters] = useState({
     client: "",
     barber: "",
@@ -40,7 +31,7 @@ export default function AppointmentsPage() {
   const [serviceInput, setServiceInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -60,11 +51,11 @@ export default function AppointmentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     fetchAppointments();
-  }, [filters]);
+  }, [fetchAppointments]);
 
   const handleFilterChange = (field: string, value: string) => {
     if (field !== "client" && field !== "barber" && field !== "service") {
@@ -83,12 +74,10 @@ export default function AppointmentsPage() {
     if (e.key === "Enter") applyClientFilter();
   };
   const handleClientBlur = () => applyClientFilter();
-
   const handleBarberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyBarberFilter();
   };
   const handleBarberBlur = () => applyBarberFilter();
-
   const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyServiceFilter();
   };
@@ -123,9 +112,7 @@ export default function AppointmentsPage() {
           alert("Запись выполнена и перенесена в работы");
           fetchAppointments();
           router.push("/works");
-        } else {
-          alert("Ошибка");
-        }
+        } else alert("Ошибка");
       } catch {
         alert("Ошибка");
       }
@@ -143,9 +130,7 @@ export default function AppointmentsPage() {
         if (res.ok) {
           alert("Запись отменена");
           fetchAppointments();
-        } else {
-          alert("Ошибка");
-        }
+        } else alert("Ошибка");
       } catch {
         alert("Ошибка");
       }
@@ -171,7 +156,6 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">
@@ -179,7 +163,7 @@ export default function AppointmentsPage() {
               <label>Клиент</label>
               <input
                 type="text"
-                placeholder="Введите ФИО клиента... (Enter для поиска)"
+                placeholder="Введите ФИО клиента..."
                 value={clientInput}
                 onChange={(e) => setClientInput(e.target.value)}
                 onKeyDown={handleClientKeyDown}
@@ -191,7 +175,7 @@ export default function AppointmentsPage() {
               <label>Парикмахер</label>
               <input
                 type="text"
-                placeholder="Введите ФИО парикмахера... (Enter для поиска)"
+                placeholder="Введите ФИО парикмахера..."
                 value={barberInput}
                 onChange={(e) => setBarberInput(e.target.value)}
                 onKeyDown={handleBarberKeyDown}
@@ -203,7 +187,7 @@ export default function AppointmentsPage() {
               <label>Услуга</label>
               <input
                 type="text"
-                placeholder="Введите название услуги... (Enter для поиска)"
+                placeholder="Введите название услуги..."
                 value={serviceInput}
                 onChange={(e) => setServiceInput(e.target.value)}
                 onKeyDown={handleServiceKeyDown}

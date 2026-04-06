@@ -11,7 +11,6 @@ interface ExistingAppointment {
   service: { duration: number };
 }
 
-const days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 const categories = [
   "Мужские стрижки",
   "Женские стрижки",

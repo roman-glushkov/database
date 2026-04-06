@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Work } from "@/types";
 import "../tabs.css";
 
 export default function WorksPage() {
-  const router = useRouter();
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Фильтры
   const [filters, setFilters] = useState({
     client: "",
     barber: "",
@@ -24,7 +21,7 @@ export default function WorksPage() {
   const [serviceInput, setServiceInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchWorks = async () => {
+  const fetchWorks = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -43,11 +40,11 @@ export default function WorksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     fetchWorks();
-  }, [filters]);
+  }, [fetchWorks]);
 
   const handleFilterChange = (field: string, value: string) => {
     if (field !== "client" && field !== "barber" && field !== "service") {
@@ -55,28 +52,21 @@ export default function WorksPage() {
     }
   };
 
-  const applyClientFilter = () => {
+  const applyClientFilter = () =>
     setFilters((prev) => ({ ...prev, client: clientInput }));
-  };
-
-  const applyBarberFilter = () => {
+  const applyBarberFilter = () =>
     setFilters((prev) => ({ ...prev, barber: barberInput }));
-  };
-
-  const applyServiceFilter = () => {
+  const applyServiceFilter = () =>
     setFilters((prev) => ({ ...prev, service: serviceInput }));
-  };
 
   const handleClientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyClientFilter();
   };
   const handleClientBlur = () => applyClientFilter();
-
   const handleBarberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyBarberFilter();
   };
   const handleBarberBlur = () => applyBarberFilter();
-
   const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyServiceFilter();
   };
@@ -106,9 +96,7 @@ export default function WorksPage() {
         if (res.ok) {
           alert("Работа удалена");
           fetchWorks();
-        } else {
-          alert("Ошибка при удалении");
-        }
+        } else alert("Ошибка при удалении");
       } catch {
         alert("Ошибка при удалении");
       }
@@ -131,7 +119,6 @@ export default function WorksPage() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">
@@ -139,7 +126,7 @@ export default function WorksPage() {
               <label>Клиент</label>
               <input
                 type="text"
-                placeholder="Введите ФИО клиента... (Enter для поиска)"
+                placeholder="Введите ФИО клиента..."
                 value={clientInput}
                 onChange={(e) => setClientInput(e.target.value)}
                 onKeyDown={handleClientKeyDown}
@@ -151,7 +138,7 @@ export default function WorksPage() {
               <label>Парикмахер</label>
               <input
                 type="text"
-                placeholder="Введите ФИО парикмахера... (Enter для поиска)"
+                placeholder="Введите ФИО парикмахера..."
                 value={barberInput}
                 onChange={(e) => setBarberInput(e.target.value)}
                 onKeyDown={handleBarberKeyDown}
@@ -163,7 +150,7 @@ export default function WorksPage() {
               <label>Услуга</label>
               <input
                 type="text"
-                placeholder="Введите название услуги... (Enter для поиска)"
+                placeholder="Введите название услуги..."
                 value={serviceInput}
                 onChange={(e) => setServiceInput(e.target.value)}
                 onKeyDown={handleServiceKeyDown}

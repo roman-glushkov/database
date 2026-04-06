@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Client } from "@/types";
 import "../tabs.css";
 
 export default function ClientsPage() {
-  const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Фильтры
   const [filters, setFilters] = useState({
     fio: "",
     discount: "",
@@ -20,7 +17,7 @@ export default function ClientsPage() {
   const [fioInput, setFioInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -37,11 +34,11 @@ export default function ClientsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     fetchClients();
-  }, [filters]);
+  }, [fetchClients]);
 
   const handleFilterChange = (field: string, value: string) => {
     if (field !== "fio") {
@@ -54,21 +51,13 @@ export default function ClientsPage() {
   };
 
   const handleFioKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      applyFioFilter();
-    }
+    if (e.key === "Enter") applyFioFilter();
   };
 
-  const handleFioBlur = () => {
-    applyFioFilter();
-  };
+  const handleFioBlur = () => applyFioFilter();
 
   const resetFilters = () => {
-    setFilters({
-      fio: "",
-      discount: "",
-      visits: "",
-    });
+    setFilters({ fio: "", discount: "", visits: "" });
     setFioInput("");
   };
 
@@ -115,7 +104,6 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">

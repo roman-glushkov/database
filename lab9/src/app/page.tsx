@@ -1,4 +1,3 @@
-// page.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -10,6 +9,16 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Без useEffect - через useState initializer (один раз при монтировании)
+  const [particles] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      delay: `${i * 0.5}s`,
+      x: `${Math.random() * 100}%`,
+      duration: `${5 + Math.random() * 10}s`,
+    }))
+  );
 
   useEffect(() => {
     fetch("/api/stats")
@@ -146,24 +155,22 @@ export default function HomePage() {
 
   return (
     <div className="home">
-      {/* Анимированный фон с частицами */}
       <div className="particles-bg">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle) => (
           <div
-            key={i}
+            key={particle.id}
             className="particle"
             style={
               {
-                "--delay": `${i * 0.5}s`,
-                "--x": `${Math.random() * 100}%`,
-                "--duration": `${5 + Math.random() * 10}s`,
+                "--delay": particle.delay,
+                "--x": particle.x,
+                "--duration": particle.duration,
               } as React.CSSProperties
             }
           />
         ))}
       </div>
 
-      {/* Градиентный шар, следующий за мышью */}
       <div
         className="mouse-glow"
         style={{
@@ -172,7 +179,6 @@ export default function HomePage() {
         }}
       />
 
-      {/* Hero секция */}
       <div className="hero-section" ref={heroRef}>
         <div className="hero-badge">
           <span className="badge-glow">✨ Салон премиум класса</span>
@@ -201,7 +207,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Карточки статистики */}
       <div className="stats-section">
         <div className="section-header">
           <span className="section-chip">Аналитика</span>
@@ -238,7 +243,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Быстрые действия */}
       <div className="actions-section">
         <div className="section-header">
           <span className="section-chip">Быстрые действия</span>
@@ -272,7 +276,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Последние записи */}
       <div className="recent-section">
         <div className="section-header">
           <span className="section-chip">Активность</span>

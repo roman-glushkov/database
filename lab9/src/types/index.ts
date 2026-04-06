@@ -1,5 +1,3 @@
-// src/types/index.ts
-
 export interface Person {
   id: number;
   firstName: string;
@@ -14,7 +12,7 @@ export interface Barber {
   id: number;
   experience: number | null;
   specialization: string | null;
-  certificates: string | null; // 👈 добавляем
+  certificates: string | null;
   person: Person;
   _count?: { works: number };
 }
@@ -46,7 +44,7 @@ export interface Work {
     person: Person;
   };
   service: Service;
-  review: Review | null; // 👈 добавляем review
+  review: Review | null;
 }
 
 export interface Stats {

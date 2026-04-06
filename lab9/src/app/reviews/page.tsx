@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Review } from "@/types";
 import "../tabs.css";
 
 export default function ReviewsPage() {
-  const router = useRouter();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Фильтры
   const [filters, setFilters] = useState({
     client: "",
     barber: "",
@@ -25,7 +22,7 @@ export default function ReviewsPage() {
   const [serviceInput, setServiceInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -45,11 +42,11 @@ export default function ReviewsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     fetchReviews();
-  }, [filters]);
+  }, [fetchReviews]);
 
   const handleFilterChange = (field: string, value: string) => {
     if (field !== "client" && field !== "barber" && field !== "service") {
@@ -68,12 +65,10 @@ export default function ReviewsPage() {
     if (e.key === "Enter") applyClientFilter();
   };
   const handleClientBlur = () => applyClientFilter();
-
   const handleBarberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyBarberFilter();
   };
   const handleBarberBlur = () => applyBarberFilter();
-
   const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") applyServiceFilter();
   };
@@ -100,9 +95,7 @@ export default function ReviewsPage() {
         if (res.ok) {
           alert("Отзыв удален");
           fetchReviews();
-        } else {
-          alert("Ошибка при удалении");
-        }
+        } else alert("Ошибка при удалении");
       } catch {
         alert("Ошибка при удалении");
       }
@@ -128,7 +121,6 @@ export default function ReviewsPage() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">
@@ -136,7 +128,7 @@ export default function ReviewsPage() {
               <label>Клиент</label>
               <input
                 type="text"
-                placeholder="Введите ФИО клиента... (Enter для поиска)"
+                placeholder="Введите ФИО клиента..."
                 value={clientInput}
                 onChange={(e) => setClientInput(e.target.value)}
                 onKeyDown={handleClientKeyDown}
@@ -148,7 +140,7 @@ export default function ReviewsPage() {
               <label>Парикмахер</label>
               <input
                 type="text"
-                placeholder="Введите ФИО парикмахера... (Enter для поиска)"
+                placeholder="Введите ФИО парикмахера..."
                 value={barberInput}
                 onChange={(e) => setBarberInput(e.target.value)}
                 onKeyDown={handleBarberKeyDown}
@@ -160,7 +152,7 @@ export default function ReviewsPage() {
               <label>Услуга</label>
               <input
                 type="text"
-                placeholder="Введите название услуги... (Enter для поиска)"
+                placeholder="Введите название услуги..."
                 value={serviceInput}
                 onChange={(e) => setServiceInput(e.target.value)}
                 onKeyDown={handleServiceKeyDown}

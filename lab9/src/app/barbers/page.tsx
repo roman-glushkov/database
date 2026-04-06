@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Barber, Schedule } from "@/types";
@@ -16,7 +16,6 @@ export default function BarbersPage() {
   const [showSchedule, setShowSchedule] = useState<number | null>(null);
   const [showCertificates, setShowCertificates] = useState<number | null>(null);
 
-  // Фильтры
   const [filters, setFilters] = useState({
     fio: "",
     experience: "",
@@ -26,7 +25,7 @@ export default function BarbersPage() {
   const [fioInput, setFioInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchBarbers = async () => {
+  const fetchBarbers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -61,11 +60,11 @@ export default function BarbersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     fetchBarbers();
-  }, [filters]);
+  }, [fetchBarbers]);
 
   const handleFilterChange = (field: string, value: string) => {
     if (field !== "fio") {
@@ -78,14 +77,10 @@ export default function BarbersPage() {
   };
 
   const handleFioKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      applyFioFilter();
-    }
+    if (e.key === "Enter") applyFioFilter();
   };
 
-  const handleFioBlur = () => {
-    applyFioFilter();
-  };
+  const handleFioBlur = () => applyFioFilter();
 
   const resetFilters = () => {
     setFilters({
@@ -163,7 +158,6 @@ export default function BarbersPage() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">
@@ -337,7 +331,6 @@ export default function BarbersPage() {
         </table>
       </div>
 
-      {/* Модальные окна (без изменений) */}
       {showSchedule && (
         <div className="modal-overlay" onClick={() => setShowSchedule(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -439,11 +432,8 @@ export default function BarbersPage() {
                 const certificates = parseCertificates(
                   barber?.certificates || null
                 );
-
-                if (!certificates || certificates.length === 0) {
+                if (!certificates || certificates.length === 0)
                   return <p>Нет сертификатов</p>;
-                }
-
                 return (
                   <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
                     {certificates.map((cert: string, idx: number) => (

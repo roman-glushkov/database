@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Service } from "@/types";
 import "../tabs.css";
 
@@ -22,11 +21,9 @@ const categoriesList = [
 ];
 
 export default function ServicesPage() {
-  const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Фильтры
   const [filters, setFilters] = useState({
     name: "",
     category: "",
@@ -36,7 +33,7 @@ export default function ServicesPage() {
   const [nameInput, setNameInput] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -54,39 +51,25 @@ export default function ServicesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     fetchServices();
-  }, [filters]);
+  }, [fetchServices]);
 
   const handleFilterChange = (field: string, value: string) => {
-    if (field !== "name") {
-      setFilters((prev) => ({ ...prev, [field]: value }));
-    }
+    if (field !== "name") setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const applyNameFilter = () => {
+  const applyNameFilter = () =>
     setFilters((prev) => ({ ...prev, name: nameInput }));
-  };
-
   const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      applyNameFilter();
-    }
+    if (e.key === "Enter") applyNameFilter();
   };
-
-  const handleNameBlur = () => {
-    applyNameFilter();
-  };
+  const handleNameBlur = () => applyNameFilter();
 
   const resetFilters = () => {
-    setFilters({
-      name: "",
-      category: "",
-      price: "",
-      popularity: "",
-    });
+    setFilters({ name: "", category: "", price: "", popularity: "" });
     setNameInput("");
   };
 
@@ -101,9 +84,7 @@ export default function ServicesPage() {
         if (res.ok) {
           alert("Услуга удалена");
           fetchServices();
-        } else {
-          alert("Ошибка при удалении");
-        }
+        } else alert("Ошибка при удалении");
       } catch {
         alert("Ошибка при удалении");
       }
@@ -129,7 +110,6 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
       {showFilters && (
         <div className="filters-panel">
           <div className="filters-grid">
@@ -175,7 +155,7 @@ export default function ServicesPage() {
               </select>
             </div>
             <div className="filter-group">
-              <label>Популярность (выполнений)</label>
+              <label>Популярность</label>
               <select
                 value={filters.popularity}
                 onChange={(e) =>

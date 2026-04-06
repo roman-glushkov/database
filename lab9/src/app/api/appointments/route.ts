@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "pending";
     const barberId = searchParams.get("barberId");
-    const date = searchParams.get("date");
     const client = searchParams.get("client") || "";
     const barber = searchParams.get("barber") || "";
     const service = searchParams.get("service") || "";

@@ -225,7 +225,6 @@ export default function AnalyticsPage() {
 
                 if (idx > 0) {
                   const prevRevenue = monthlyStats[idx - 1].revenue;
-                  const prevWorkCount = monthlyStats[idx - 1].workCount;
 
                   if (prevRevenue > 0) {
                     change = (

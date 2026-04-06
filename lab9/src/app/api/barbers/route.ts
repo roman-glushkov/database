@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Убираем schedules из ответа (чтобы не дублировать)
-    const result = barbers.map(({ schedules, ...rest }) => rest);
+    const result = barbers.map(({ ...rest }) => rest);
 
     return NextResponse.json(result);
   } catch (error) {
