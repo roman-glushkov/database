@@ -3,27 +3,18 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Service } from "@/types";
+import {
+  specializationOptions,
+  priceOptions,
+  popularityOptions,
+} from "@/helpers/constants";
+import { formatMoney } from "@/helpers/format";
 import "../tabs.css";
-
-const categoriesList = [
-  "Мужские стрижки",
-  "Женские стрижки",
-  "Окрашивание",
-  "Укладка",
-  "Стрижка + укладка",
-  "Коррекция бровей",
-  "Лечение волос",
-  "Уходовые процедуры",
-  "Наращивание волос",
-  "Химическая завивка",
-  "Вечерние прически",
-  "Свадебные прически",
-];
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     name: "",
     category: "",
@@ -31,22 +22,18 @@ export default function ServicesPage() {
     popularity: "",
   });
   const [nameInput, setNameInput] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.name) params.append("name", filters.name);
-      if (filters.category) params.append("category", filters.category);
-      if (filters.price) params.append("price", filters.price);
-      if (filters.popularity) params.append("popularity", filters.popularity);
-
-      const res = await fetch(`/api/services?${params.toString()}`);
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      const res = await fetch(`/api/services?${params}`);
       const data = await res.json();
       setServices(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setServices([]);
     } finally {
       setLoading(false);
@@ -57,16 +44,14 @@ export default function ServicesPage() {
     fetchServices();
   }, [fetchServices]);
 
-  const handleFilterChange = (field: string, value: string) => {
-    if (field !== "name") setFilters((prev) => ({ ...prev, [field]: value }));
+  const applyFilter = (field: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const applyNameFilter = () =>
-    setFilters((prev) => ({ ...prev, name: nameInput }));
-  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const applyNameFilter = () => applyFilter("name", nameInput);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") applyNameFilter();
   };
-  const handleNameBlur = () => applyNameFilter();
 
   const resetFilters = () => {
     setFilters({ name: "", category: "", price: "", popularity: "" });
@@ -84,7 +69,9 @@ export default function ServicesPage() {
         if (res.ok) {
           alert("Услуга удалена");
           fetchServices();
-        } else alert("Ошибка при удалении");
+        } else {
+          alert("Ошибка при удалении");
+        }
       } catch {
         alert("Ошибка при удалении");
       }
@@ -120,8 +107,8 @@ export default function ServicesPage() {
                 placeholder="Введите название... (Enter для поиска)"
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
-                onKeyDown={handleNameKeyDown}
-                onBlur={handleNameBlur}
+                onKeyDown={handleKeyDown}
+                onBlur={applyNameFilter}
                 className="filter-input"
               />
             </div>
@@ -129,11 +116,11 @@ export default function ServicesPage() {
               <label>Категория</label>
               <select
                 value={filters.category}
-                onChange={(e) => handleFilterChange("category", e.target.value)}
+                onChange={(e) => applyFilter("category", e.target.value)}
                 className="filter-select"
               >
                 <option value="">Все</option>
-                {categoriesList.map((cat) => (
+                {specializationOptions.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -144,30 +131,28 @@ export default function ServicesPage() {
               <label>Цена</label>
               <select
                 value={filters.price}
-                onChange={(e) => handleFilterChange("price", e.target.value)}
+                onChange={(e) => applyFilter("price", e.target.value)}
                 className="filter-select"
               >
-                <option value="">Все</option>
-                <option value="0-500">До 500 ₽</option>
-                <option value="500-1000">500-1000 ₽</option>
-                <option value="1000-2000">1000-2000 ₽</option>
-                <option value="2000+">От 2000 ₽</option>
+                {priceOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="filter-group">
               <label>Популярность</label>
               <select
                 value={filters.popularity}
-                onChange={(e) =>
-                  handleFilterChange("popularity", e.target.value)
-                }
+                onChange={(e) => applyFilter("popularity", e.target.value)}
                 className="filter-select"
               >
-                <option value="">Все</option>
-                <option value="0">Нет выполнений</option>
-                <option value="1-5">1-5 раз</option>
-                <option value="5-10">5-10 раз</option>
-                <option value="10+">10+ раз</option>
+                {popularityOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -195,7 +180,7 @@ export default function ServicesPage() {
             {services.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center">
-                  {Object.values(filters).some((v) => v)
+                  {Object.values(filters).some(Boolean)
                     ? "Ничего не найдено"
                     : "Нет услуг"}
                 </td>
@@ -207,7 +192,7 @@ export default function ServicesPage() {
                   <td className="text-center">
                     {s.duration ? `${s.duration} мин` : "-"}
                   </td>
-                  <td className="text-center">{s.price} ₽</td>
+                  <td className="text-center">{formatMoney(s.price)}</td>
                   <td className="text-center">{s.category || "-"}</td>
                   <td className="text-center">{s._count?.works || 0}</td>
                   <td className="action-buttons">

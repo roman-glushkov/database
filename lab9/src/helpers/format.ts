@@ -28,3 +28,27 @@ export const getFullName = (person: {
   `${person.lastName} ${person.firstName}${
     person.middleName ? ` ${person.middleName}` : ""
   }`;
+
+// Рендер звезд рейтинга
+export const renderStars = (rating: number, maxStars: number = 5): string => {
+  return "★".repeat(rating) + "☆".repeat(maxStars - rating);
+};
+
+// Получить текст рейтинга
+export const getRatingText = (rating: number): string => {
+  const texts: Record<number, string> = {
+    5: "Отлично",
+    4: "Хорошо",
+    3: "Средне",
+    2: "Плохо",
+    1: "Ужасно",
+  };
+  return texts[rating] || "";
+};
+
+// Получить статус дня расписания
+export const getScheduleStatus = (startTime: string, endTime: string) => {
+  if (!startTime && !endTime) return { text: "Выходной", type: "warning" };
+  if (startTime && endTime) return { text: "Рабочий", type: "success" };
+  return { text: "Не заполнено", type: "info" };
+};

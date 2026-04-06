@@ -56,3 +56,65 @@ export interface FilterParams {
   specialization?: string;
   schedule?: string;
 }
+
+// ========== ТИПЫ ДЛЯ ФОРМ ==========
+export interface ClientFormData {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  birthDate: string;
+  phone: string;
+  email: string;
+  discount: string;
+}
+
+export interface BarberFormData {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  birthDate: string;
+  phone: string;
+  email: string;
+  experience: string;
+  specialization: string;
+  certificates: string;
+}
+
+export interface ReviewFormData {
+  workId: string;
+  rating: string;
+  text: string;
+}
+
+export interface ServiceFormData {
+  name: string;
+  duration: string;
+  price: string;
+  category: string;
+}
+
+export interface ServiceFormProps {
+  mode: "create" | "update";
+  serviceId?: string | null;
+  initialData?: ServiceFormData | null;
+}
+
+// Типы пропсов для форм
+export interface ClientFormProps {
+  mode: "create" | "update";
+  clientId?: string | null;
+  initialData?: ClientFormData | null;
+}
+
+export interface BarberFormProps {
+  mode: "create" | "update";
+  barberId?: string | null;
+  initialData?: BarberFormData | null;
+}
+
+export interface ReviewFormProps {
+  mode: "create" | "update";
+  reviewId?: string | null;
+  initialData?: ReviewFormData | null;
+  presetWorkId?: string | null;
+}

@@ -5,24 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { specializationOptions, barberFields } from "@/helpers/constants";
 import { parseCertificatesToJSON } from "@/helpers/timeSlots";
-
-interface BarberFormData {
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  birthDate: string;
-  phone: string;
-  email: string;
-  experience: string;
-  specialization: string;
-  certificates: string;
-}
-
-interface BarberFormProps {
-  mode: "create" | "update";
-  barberId?: string | null;
-  initialData?: BarberFormData | null;
-}
+import { BarberFormData, BarberFormProps } from "@/helpers/types";
 
 const defaultFormData: BarberFormData = {
   firstName: "",

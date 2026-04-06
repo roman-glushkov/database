@@ -3,18 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Barber, Schedule, ScheduleFormData } from "@/types";
+import { Barber, Schedule } from "@/types";
+import { daysOfWeek } from "@/helpers/constants";
+import { getFullName, getScheduleStatus } from "@/helpers/format";
 import "../../forms.css";
-
-const days = [
-  { value: 1, label: "Понедельник" },
-  { value: 2, label: "Вторник" },
-  { value: 3, label: "Среда" },
-  { value: 4, label: "Четверг" },
-  { value: 5, label: "Пятница" },
-  { value: 6, label: "Суббота" },
-  { value: 7, label: "Воскресенье" },
-];
+import { ScheduleFormData } from "@/helpers/types";
 
 export default function CreateSchedulePage() {
   const router = useRouter();
@@ -28,6 +21,7 @@ export default function CreateSchedulePage() {
     {}
   );
 
+  // Загрузка списка парикмахеров
   useEffect(() => {
     fetch("/api/barbers")
       .then((res) => res.json())
@@ -35,26 +29,28 @@ export default function CreateSchedulePage() {
       .catch(console.error);
   }, []);
 
+  // Загрузка существующего расписания
   useEffect(() => {
-    if (selectedBarberId) {
-      fetch(`/api/schedules?barberId=${selectedBarberId}`)
-        .then((res) => res.json())
-        .then((data: Schedule[]) => {
-          const scheduleMap: Record<number, ScheduleFormData> = {};
-          data.forEach((s) => {
-            scheduleMap[s.dayOfWeek] = {
-              id: s.id,
-              dayOfWeek: s.dayOfWeek,
-              startTime: s.startTime || "",
-              endTime: s.endTime || "",
-            };
-          });
-          setSchedules(scheduleMap);
-        })
-        .catch(console.error);
-    } else {
+    if (!selectedBarberId) {
       setSchedules({});
+      return;
     }
+
+    fetch(`/api/schedules?barberId=${selectedBarberId}`)
+      .then((res) => res.json())
+      .then((data: Schedule[]) => {
+        const scheduleMap: Record<number, ScheduleFormData> = {};
+        data.forEach((s) => {
+          scheduleMap[s.dayOfWeek] = {
+            id: s.id,
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime || "",
+            endTime: s.endTime || "",
+          };
+        });
+        setSchedules(scheduleMap);
+      })
+      .catch(console.error);
   }, [selectedBarberId]);
 
   const updateSchedule = (
@@ -76,35 +72,37 @@ export default function CreateSchedulePage() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      for (const day of days) {
+      for (const day of daysOfWeek) {
         const schedule = schedules[day.value];
         if (!schedule) continue;
 
         const hasData = schedule.startTime || schedule.endTime;
         if (!hasData) continue;
 
+        // Проверка: оба поля должны быть заполнены
         if (
           (schedule.startTime && !schedule.endTime) ||
           (!schedule.startTime && schedule.endTime)
         ) {
           alert(`Для ${day.label} укажите и время начала, и время окончания`);
-          setLoading(false);
           return;
         }
 
         const isDayOff = !schedule.startTime && !schedule.endTime;
 
         if (schedule.id > 0) {
+          // Обновление существующего
           await fetch(`/api/schedules/${schedule.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               startTime: schedule.startTime || null,
               endTime: schedule.endTime || null,
-              isDayOff: isDayOff,
+              isDayOff,
             }),
           });
         } else if (schedule.startTime && schedule.endTime) {
+          // Создание нового
           await fetch("/api/schedules", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -132,6 +130,19 @@ export default function CreateSchedulePage() {
     (b) => b.id === parseInt(selectedBarberId)
   );
 
+  if (!selectedBarber) {
+    return (
+      <div className="form-container">
+        <div className="form-card">
+          <Link href="/barbers" className="btn-back">
+            ← Назад к парикмахерам
+          </Link>
+          <div className="loading">Выберите парикмахера</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="form-container schedule-form-container">
       <div className="form-card">
@@ -140,98 +151,77 @@ export default function CreateSchedulePage() {
         </Link>
         <h1 className="form-title">Редактирование расписания</h1>
 
-        {selectedBarber && (
-          <>
-            <div className="schedule-info">
-              <strong>Парикмахер:</strong> {selectedBarber.person.lastName}{" "}
-              {selectedBarber.person.firstName}
-            </div>
+        <div className="schedule-info">
+          <strong>Парикмахер:</strong> {getFullName(selectedBarber.person)}
+        </div>
 
-            <div className="schedule-table-wrapper">
-              <table className="schedule-table">
-                <thead>
-                  <tr>
-                    <th>День недели</th>
-                    <th>Время начала</th>
-                    <th>Время окончания</th>
-                    <th>Статус</th>
+        <div className="schedule-table-wrapper">
+          <table className="schedule-table">
+            <thead>
+              <tr>
+                <th>День недели</th>
+                <th>Время начала</th>
+                <th>Время окончания</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              {daysOfWeek.map((day) => {
+                const schedule = schedules[day.value];
+                const startTime = schedule?.startTime || "";
+                const endTime = schedule?.endTime || "";
+                const status = getScheduleStatus(startTime, endTime);
+
+                return (
+                  <tr key={day.value}>
+                    <td className="schedule-day">{day.label}</td>
+                    <td>
+                      <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) =>
+                          updateSchedule(day.value, "startTime", e.target.value)
+                        }
+                        className="form-input schedule-time-input"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) =>
+                          updateSchedule(day.value, "endTime", e.target.value)
+                        }
+                        className="form-input schedule-time-input"
+                      />
+                    </td>
+                    <td className="schedule-status">
+                      <span className={`badge badge-${status.type}`}>
+                        {status.text}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {days.map((day) => {
-                    const schedule = schedules[day.value];
-                    const startTime = schedule?.startTime || "";
-                    const endTime = schedule?.endTime || "";
-                    const isDayOff = !startTime && !endTime;
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-                    return (
-                      <tr key={day.value}>
-                        <td className="schedule-day">{day.label}</td>
-                        <td>
-                          <input
-                            type="time"
-                            value={startTime}
-                            onChange={(e) =>
-                              updateSchedule(
-                                day.value,
-                                "startTime",
-                                e.target.value
-                              )
-                            }
-                            className="form-input schedule-time-input"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="time"
-                            value={endTime}
-                            onChange={(e) =>
-                              updateSchedule(
-                                day.value,
-                                "endTime",
-                                e.target.value
-                              )
-                            }
-                            className="form-input schedule-time-input"
-                          />
-                        </td>
-                        <td className="schedule-status">
-                          {isDayOff ? (
-                            <span className="badge badge-warning">
-                              Выходной
-                            </span>
-                          ) : startTime && endTime ? (
-                            <span className="badge badge-success">Рабочий</span>
-                          ) : (
-                            <span className="badge badge-info">
-                              Не заполнено
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="button-group">
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className="btn-submit"
-              >
-                {loading ? "Сохранение..." : "Сохранить всё"}
-              </button>
-              <button
-                onClick={() => router.push("/barbers")}
-                className="btn-cancel"
-              >
-                Отмена
-              </button>
-            </div>
-          </>
-        )}
+        <div className="button-group">
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="btn-submit"
+          >
+            {loading ? "Сохранение..." : "Сохранить всё"}
+          </button>
+          <button
+            onClick={() => router.push("/barbers")}
+            className="btn-cancel"
+          >
+            Отмена
+          </button>
+        </div>
       </div>
     </div>
   );

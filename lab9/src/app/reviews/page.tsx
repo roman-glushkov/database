@@ -3,12 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Review } from "@/types";
+import { formatDate, getFullName, renderStars } from "@/helpers/format";
+import { ratingOptions } from "@/helpers/constants";
 import "../tabs.css";
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     client: "",
     barber: "",
@@ -20,24 +22,18 @@ export default function ReviewsPage() {
   const [clientInput, setClientInput] = useState("");
   const [barberInput, setBarberInput] = useState("");
   const [serviceInput, setServiceInput] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.client) params.append("client", filters.client);
-      if (filters.barber) params.append("barber", filters.barber);
-      if (filters.service) params.append("service", filters.service);
-      if (filters.rating) params.append("rating", filters.rating);
-      if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
-      if (filters.dateTo) params.append("dateTo", filters.dateTo);
-
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
       const res = await fetch(`/api/reviews?${params.toString()}`);
       const data = await res.json();
       setReviews(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setReviews([]);
     } finally {
       setLoading(false);
@@ -48,31 +44,9 @@ export default function ReviewsPage() {
     fetchReviews();
   }, [fetchReviews]);
 
-  const handleFilterChange = (field: string, value: string) => {
-    if (field !== "client" && field !== "barber" && field !== "service") {
-      setFilters((prev) => ({ ...prev, [field]: value }));
-    }
+  const applyFilter = (field: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
   };
-
-  const applyClientFilter = () =>
-    setFilters((prev) => ({ ...prev, client: clientInput }));
-  const applyBarberFilter = () =>
-    setFilters((prev) => ({ ...prev, barber: barberInput }));
-  const applyServiceFilter = () =>
-    setFilters((prev) => ({ ...prev, service: serviceInput }));
-
-  const handleClientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyClientFilter();
-  };
-  const handleClientBlur = () => applyClientFilter();
-  const handleBarberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyBarberFilter();
-  };
-  const handleBarberBlur = () => applyBarberFilter();
-  const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") applyServiceFilter();
-  };
-  const handleServiceBlur = () => applyServiceFilter();
 
   const resetFilters = () => {
     setFilters({
@@ -100,6 +74,10 @@ export default function ReviewsPage() {
         alert("Ошибка при удалении");
       }
     }
+  };
+
+  const handleKeyDown = (callback: () => void) => (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") callback();
   };
 
   if (loading) return <div className="loading">Загрузка...</div>;
@@ -131,8 +109,10 @@ export default function ReviewsPage() {
                 placeholder="Введите ФИО клиента..."
                 value={clientInput}
                 onChange={(e) => setClientInput(e.target.value)}
-                onKeyDown={handleClientKeyDown}
-                onBlur={handleClientBlur}
+                onKeyDown={handleKeyDown(() =>
+                  applyFilter("client", clientInput)
+                )}
+                onBlur={() => applyFilter("client", clientInput)}
                 className="filter-input"
               />
             </div>
@@ -143,8 +123,10 @@ export default function ReviewsPage() {
                 placeholder="Введите ФИО парикмахера..."
                 value={barberInput}
                 onChange={(e) => setBarberInput(e.target.value)}
-                onKeyDown={handleBarberKeyDown}
-                onBlur={handleBarberBlur}
+                onKeyDown={handleKeyDown(() =>
+                  applyFilter("barber", barberInput)
+                )}
+                onBlur={() => applyFilter("barber", barberInput)}
                 className="filter-input"
               />
             </div>
@@ -155,8 +137,10 @@ export default function ReviewsPage() {
                 placeholder="Введите название услуги..."
                 value={serviceInput}
                 onChange={(e) => setServiceInput(e.target.value)}
-                onKeyDown={handleServiceKeyDown}
-                onBlur={handleServiceBlur}
+                onKeyDown={handleKeyDown(() =>
+                  applyFilter("service", serviceInput)
+                )}
+                onBlur={() => applyFilter("service", serviceInput)}
                 className="filter-input"
               />
             </div>
@@ -164,15 +148,14 @@ export default function ReviewsPage() {
               <label>Оценка</label>
               <select
                 value={filters.rating}
-                onChange={(e) => handleFilterChange("rating", e.target.value)}
+                onChange={(e) => applyFilter("rating", e.target.value)}
                 className="filter-select"
               >
-                <option value="">Все</option>
-                <option value="5">5 ★ - Отлично</option>
-                <option value="4">4 ★ - Хорошо</option>
-                <option value="3">3 ★ - Средне</option>
-                <option value="2">2 ★ - Плохо</option>
-                <option value="1">1 ★ - Ужасно</option>
+                {ratingOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="filter-group">
@@ -180,7 +163,7 @@ export default function ReviewsPage() {
               <input
                 type="date"
                 value={filters.dateFrom}
-                onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+                onChange={(e) => applyFilter("dateFrom", e.target.value)}
                 className="filter-input"
               />
             </div>
@@ -189,7 +172,7 @@ export default function ReviewsPage() {
               <input
                 type="date"
                 value={filters.dateTo}
-                onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+                onChange={(e) => applyFilter("dateTo", e.target.value)}
                 className="filter-input"
               />
             </div>
@@ -219,7 +202,7 @@ export default function ReviewsPage() {
             {reviews.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center">
-                  {Object.values(filters).some((v) => v)
+                  {Object.values(filters).some(Boolean)
                     ? "Ничего не найдено"
                     : "Нет отзывов"}
                 </td>
@@ -228,18 +211,15 @@ export default function ReviewsPage() {
               reviews.map((r) => (
                 <tr key={r.id}>
                   <td className="text-left">
-                    {r.work.client.person.lastName}{" "}
-                    {r.work.client.person.firstName}
+                    {getFullName(r.work.client.person)}
                   </td>
                   <td className="text-left">
-                    {r.work.barber.person.lastName}{" "}
-                    {r.work.barber.person.firstName}
+                    {getFullName(r.work.barber.person)}
                   </td>
                   <td className="text-left">{r.work.service.name}</td>
                   <td className="text-center">
                     <span className="badge badge-success">
-                      {"★".repeat(r.rating)}
-                      {"☆".repeat(5 - r.rating)}
+                      {renderStars(r.rating)}
                     </span>
                   </td>
                   <td
@@ -248,9 +228,7 @@ export default function ReviewsPage() {
                   >
                     {r.text || "-"}
                   </td>
-                  <td className="text-center">
-                    {new Date(r.reviewDate).toLocaleDateString("ru-RU")}
-                  </td>
+                  <td className="text-center">{formatDate(r.reviewDate)}</td>
                   <td className="action-buttons">
                     <Link
                       href={`/reviews/update?id=${r.id}`}
@@ -260,10 +238,7 @@ export default function ReviewsPage() {
                     </Link>
                     <button
                       onClick={() =>
-                        handleDelete(
-                          r.id,
-                          `${r.work.client.person.lastName} ${r.work.client.person.firstName}`
-                        )
+                        handleDelete(r.id, getFullName(r.work.client.person))
                       }
                       className="btn-delete"
                     >

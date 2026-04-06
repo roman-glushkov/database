@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Schedule } from "@/types";
+import { days } from "@/helpers/constants";
+import { getFullName } from "@/helpers/format";
 import "../tabs.css";
-
-const days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -14,8 +14,7 @@ export default function SchedulesPage() {
   useEffect(() => {
     fetch("/api/schedules")
       .then((res) => res.json())
-      .then((data) => setSchedules(data))
-      .catch((err) => console.error(err))
+      .then(setSchedules)
       .finally(() => setLoading(false));
   }, []);
 
@@ -49,9 +48,7 @@ export default function SchedulesPage() {
             ) : (
               schedules.map((s) => (
                 <tr key={s.id}>
-                  <td>
-                    {s.barber.person.lastName} {s.barber.person.firstName}
-                  </td>
+                  <td>{getFullName(s.barber.person)}</td>
                   <td>{days[s.dayOfWeek - 1]}</td>
                   <td>
                     {s.isDayOff
@@ -59,11 +56,13 @@ export default function SchedulesPage() {
                       : `${s.startTime || "-"} - ${s.endTime || "-"}`}
                   </td>
                   <td>
-                    {s.isDayOff ? (
-                      <span className="badge badge-warning">Выходной</span>
-                    ) : (
-                      <span className="badge badge-success">Рабочий</span>
-                    )}
+                    <span
+                      className={`badge badge-${
+                        s.isDayOff ? "warning" : "success"
+                      }`}
+                    >
+                      {s.isDayOff ? "Выходной" : "Рабочий"}
+                    </span>
                   </td>
                 </tr>
               ))

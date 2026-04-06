@@ -3,31 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { clientFields } from "@/helpers/constants";
-import { ClientFormData, ClientFormProps } from "@/helpers/types";
+import { serviceFields } from "@/helpers/constants";
+import { specializationOptions } from "@/helpers/constants";
+import { ServiceFormData, ServiceFormProps } from "@/helpers/types";
 
-const defaultFormData: ClientFormData = {
-  firstName: "",
-  lastName: "",
-  middleName: "",
-  birthDate: "",
-  phone: "",
-  email: "",
-  discount: "",
+const defaultFormData: ServiceFormData = {
+  name: "",
+  duration: "",
+  price: "",
+  category: "",
 };
 
-export default function ClientForm({
+export default function ServiceForm({
   mode,
-  clientId,
+  serviceId,
   initialData,
-}: ClientFormProps) {
+}: ServiceFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<ClientFormData>(
+  const [formData, setFormData] = useState<ServiceFormData>(
     initialData || defaultFormData
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -36,7 +36,7 @@ export default function ClientForm({
     setLoading(true);
     try {
       const url =
-        mode === "create" ? "/api/clients" : `/api/clients/${clientId}`;
+        mode === "create" ? "/api/services" : `/api/services/${serviceId}`;
       const method = mode === "create" ? "POST" : "PUT";
 
       const res = await fetch(url, {
@@ -48,17 +48,17 @@ export default function ClientForm({
       if (res.ok) {
         alert(
           mode === "create"
-            ? "Клиент успешно добавлен!"
-            : "Клиент успешно обновлен!"
+            ? "Услуга успешно добавлена!"
+            : "Услуга успешно обновлена!"
         );
-        router.push("/clients");
+        router.push("/services");
       } else {
         const error = await res.json();
         alert("Ошибка: " + error.error);
       }
     } catch {
       alert(
-        `Ошибка при ${mode === "create" ? "добавлении" : "обновлении"} клиента`
+        `Ошибка при ${mode === "create" ? "добавлении" : "обновлении"} услуги`
       );
     } finally {
       setLoading(false);
@@ -68,14 +68,14 @@ export default function ClientForm({
   return (
     <div className="form-container">
       <div className="form-card">
-        <Link href="/clients" className="btn-back">
+        <Link href="/services" className="btn-back">
           ← Назад к списку
         </Link>
         <h1 className="form-title">
-          {mode === "create" ? "Добавить клиента" : "Редактировать клиента"}
+          {mode === "create" ? "Добавить услугу" : "Редактировать услугу"}
         </h1>
         <form onSubmit={handleSubmit}>
-          {clientFields.map((field) => (
+          {serviceFields.map((field) => (
             <div key={field.name} className="form-group">
               <label className="form-label">
                 {field.label} {field.required && "*"}
@@ -83,16 +83,34 @@ export default function ClientForm({
               <input
                 type={field.type}
                 name={field.name}
-                value={formData[field.name as keyof ClientFormData]}
+                value={formData[field.name as keyof ServiceFormData]}
                 onChange={handleChange}
                 required={field.required || false}
                 className="form-input"
                 placeholder={field.placeholder}
                 min={field.min}
-                max={field.max}
+                step={field.step}
               />
             </div>
           ))}
+
+          <div className="form-group">
+            <label className="form-label">Категория</label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="form-input"
+            >
+              <option value="">Выберите категорию</option>
+              {specializationOptions.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="button-group">
             <button type="submit" disabled={loading} className="btn-submit">
               {loading
@@ -100,12 +118,12 @@ export default function ClientForm({
                   ? "Добавление..."
                   : "Сохранение..."
                 : mode === "create"
-                ? "Добавить клиента"
+                ? "Добавить услугу"
                 : "Сохранить изменения"}
             </button>
             <button
               type="button"
-              onClick={() => router.push("/clients")}
+              onClick={() => router.push("/services")}
               className="btn-cancel"
             >
               Отмена

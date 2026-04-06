@@ -7,6 +7,7 @@ interface FormField {
   placeholder?: string;
   min?: string;
   max?: string;
+  step?: string;
 }
 
 // ========== КАТЕГОРИИ И СПЕЦИАЛИЗАЦИИ ==========
@@ -119,6 +120,33 @@ export const clientFields: FormField[] = [
   },
 ];
 
+// ========== ПОЛЯ ДЛЯ ФОРМ УСЛУГ ==========
+export const serviceFields: FormField[] = [
+  {
+    name: "name",
+    label: "Название",
+    type: "text",
+    required: true,
+    placeholder: "Например: Мужская стрижка",
+  },
+  {
+    name: "duration",
+    label: "Длительность (мин)",
+    type: "number",
+    placeholder: "30",
+    min: "0",
+  },
+  {
+    name: "price",
+    label: "Цена",
+    type: "number",
+    required: true,
+    placeholder: "1000",
+    min: "0",
+    step: "0.01",
+  },
+];
+
 // ========== ОПЦИИ ДЛЯ ФИЛЬТРАЦИИ КЛИЕНТОВ ==========
 export const discountOptions = [
   { value: "0", label: "0%" },
@@ -132,4 +160,39 @@ export const visitsOptions = [
   { value: "1-3", label: "1-3 визита" },
   { value: "4-10", label: "4-10 визитов" },
   { value: "10+", label: "10+ визитов" },
+];
+
+export const ratingOptions = [
+  { value: "", label: "Все" },
+  { value: "5", label: "5 ★ - Отлично" },
+  { value: "4", label: "4 ★ - Хорошо" },
+  { value: "3", label: "3 ★ - Средне" },
+  { value: "2", label: "2 ★ - Плохо" },
+  { value: "1", label: "1 ★ - Ужасно" },
+];
+
+export const daysOfWeek = [
+  { value: 1, label: "Понедельник" },
+  { value: 2, label: "Вторник" },
+  { value: 3, label: "Среда" },
+  { value: 4, label: "Четверг" },
+  { value: 5, label: "Пятница" },
+  { value: 6, label: "Суббота" },
+  { value: 7, label: "Воскресенье" },
+];
+
+export const priceOptions = [
+  { value: "", label: "Все" },
+  { value: "0-500", label: "До 500 ₽" },
+  { value: "500-1000", label: "500-1000 ₽" },
+  { value: "1000-2000", label: "1000-2000 ₽" },
+  { value: "2000+", label: "От 2000 ₽" },
+];
+
+export const popularityOptions = [
+  { value: "", label: "Все" },
+  { value: "0", label: "Нет выполнений" },
+  { value: "1-5", label: "1-5 раз" },
+  { value: "5-10", label: "5-10 раз" },
+  { value: "10+", label: "10+ раз" },
 ];
