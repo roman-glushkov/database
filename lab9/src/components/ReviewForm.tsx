@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Work } from "@/types";
 import { formatDate, getFullName } from "@/helpers/format";
 import { ReviewFormData, ReviewFormProps } from "@/helpers/types";
+import "../app/forms.css";
 
 const defaultFormData: ReviewFormData = {
   workId: "",

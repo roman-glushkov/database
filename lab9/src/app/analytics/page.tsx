@@ -42,6 +42,17 @@ export default function AnalyticsPage() {
       .catch(console.error);
   }, []);
 
+  // Подсчет общей статистики по скидкам
+  const totalOriginal = clientStats.reduce(
+    (sum, c) => sum + (c.totalOriginal || 0),
+    0
+  );
+  const totalSpent = clientStats.reduce((sum, c) => sum + c.totalSpent, 0);
+  const totalSaved = totalOriginal - totalSpent;
+  const clientsWithDiscount = clientStats.filter(
+    (c) => (c.discount || 0) > 0
+  ).length;
+
   if (loading) return <div className="loading">Загрузка аналитики...</div>;
 
   return (
@@ -140,25 +151,64 @@ export default function AnalyticsPage() {
             <thead>
               <tr>
                 <th>Клиент</th>
-                <th>Количество визитов</th>
-                <th>Потрачено всего</th>
-                <th>Средний чек</th>
                 <th>Скидка</th>
+                <th>Визитов</th>
+                <th>Без скидки</th>
+                <th>Со скидкой</th>
+                <th>Сэкономлено</th>
+                <th>Средний чек</th>
               </tr>
             </thead>
             <tbody>
               {clientStats.map((c) => (
                 <tr key={c.id}>
                   <td className="text-left">{c.name}</td>
+                  <td className="text-center">
+                    {c.discount ? (
+                      <span style={{ color: "#10b981", fontWeight: "bold" }}>
+                        {c.discount}%
+                      </span>
+                    ) : (
+                      <span style={{ color: "#9ca3af" }}>-</span>
+                    )}
+                  </td>
                   <td className="text-center">{c.visitCount}</td>
-                  <td className="text-center">{formatMoney(c.totalSpent)}</td>
+                  <td
+                    className="text-center"
+                    style={{ textDecoration: "line-through", color: "#9ca3af" }}
+                  >
+                    {formatMoney(c.totalOriginal || c.totalSpent)}
+                  </td>
+                  <td
+                    className="text-center"
+                    style={{ fontWeight: "bold", color: "#10b981" }}
+                  >
+                    {formatMoney(c.totalSpent)}
+                  </td>
+                  <td className="text-center" style={{ color: "#ef4444" }}>
+                    -{formatMoney(c.totalSaved || 0)}
+                  </td>
                   <td className="text-center">
                     {avgPrice(c.totalSpent, c.visitCount)}
                   </td>
-                  <td className="text-center">-</td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr style={{ background: "#f3f4f6", fontWeight: "bold" }}>
+                <td className="text-left">ИТОГО</td>
+                <td className="text-center">-</td>
+                <td className="text-center">
+                  {clientStats.reduce((s, c) => s + c.visitCount, 0)}
+                </td>
+                <td className="text-center">{formatMoney(totalOriginal)}</td>
+                <td className="text-center">{formatMoney(totalSpent)}</td>
+                <td className="text-center" style={{ color: "#ef4444" }}>
+                  -{formatMoney(totalSaved)}
+                </td>
+                <td className="text-center">-</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}

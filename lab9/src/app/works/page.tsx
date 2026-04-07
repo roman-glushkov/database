@@ -6,8 +6,13 @@ import { Work } from "@/types";
 import { formatDate, getFullName, formatMoney } from "@/helpers/format";
 import "../tabs.css";
 
+// Расширенный тип Work с finalPrice
+interface WorkWithDiscount extends Work {
+  finalPrice?: number;
+}
+
 export default function WorksPage() {
-  const [works, setWorks] = useState<Work[]>([]);
+  const [works, setWorks] = useState<WorkWithDiscount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -199,7 +204,33 @@ export default function WorksPage() {
                   <td className="text-left">{getFullName(w.barber.person)}</td>
                   <td className="text-left">{w.service.name}</td>
                   <td className="text-center">
-                    {formatMoney(w.service.price)}
+                    {w.finalPrice !== undefined ? (
+                      <>
+                        <span
+                          style={{
+                            textDecoration: w.client.discount
+                              ? "line-through"
+                              : "none",
+                            fontSize: "0.85rem",
+                            color: "#999",
+                          }}
+                        >
+                          {formatMoney(w.service.price)}
+                        </span>
+                        {w.client.discount ? (
+                          <div style={{ color: "#4CAF50", fontWeight: "bold" }}>
+                            {formatMoney(w.finalPrice)}{" "}
+                            <span style={{ fontSize: "0.7rem" }}>
+                              (скидка {w.client.discount}%)
+                            </span>
+                          </div>
+                        ) : (
+                          <div>{formatMoney(w.service.price)}</div>
+                        )}
+                      </>
+                    ) : (
+                      formatMoney(w.service.price)
+                    )}
                   </td>
                   <td className="text-center">
                     {w.review ? (

@@ -29,6 +29,9 @@ export interface ClientStats {
   name: string;
   visitCount: number;
   totalSpent: number;
+  totalOriginal?: number; // Добавить
+  totalSaved?: number; // Добавить
+  discount?: number; // Добавить
 }
 
 export interface MonthlyStats {

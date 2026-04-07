@@ -7,12 +7,19 @@ import "../tabs.css";
 import { formatDateTime } from "@/helpers/format";
 import type { Appointment } from "@/types";
 
+// Расширенный тип Appointment с finalPrice
+interface AppointmentWithDiscount extends Appointment {
+  finalPrice?: number;
+}
+
 const getFullName = (person: { firstName: string; lastName: string }) =>
   `${person.lastName} ${person.firstName}`;
 
 export default function AppointmentsPage() {
   const router = useRouter();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentWithDiscount[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -211,7 +218,35 @@ export default function AppointmentsPage() {
                   <td className="text-left">{getFullName(a.barber.person)}</td>
                   <td className="text-left">{a.service.name}</td>
                   <td className="text-center">{a.service.duration} мин</td>
-                  <td className="text-center">{a.service.price} ₽</td>
+                  <td className="text-center">
+                    {a.finalPrice !== undefined ? (
+                      <>
+                        <span
+                          style={{
+                            textDecoration: a.client.discount
+                              ? "line-through"
+                              : "none",
+                            fontSize: "0.85rem",
+                            color: "#999",
+                          }}
+                        >
+                          {a.service.price} ₽
+                        </span>
+                        {a.client.discount ? (
+                          <div style={{ color: "#4CAF50", fontWeight: "bold" }}>
+                            {Math.round(a.finalPrice)} ₽{" "}
+                            <span style={{ fontSize: "0.7rem" }}>
+                              (скидка {a.client.discount}%)
+                            </span>
+                          </div>
+                        ) : (
+                          <div>{a.service.price} ₽</div>
+                        )}
+                      </>
+                    ) : (
+                      `${a.service.price} ₽`
+                    )}
+                  </td>
                   <td className="action-buttons">
                     <button
                       onClick={() =>

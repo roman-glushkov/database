@@ -64,7 +64,13 @@ export async function GET(request: NextRequest) {
       works = works.filter((work) => new Date(work.workDate) <= toDate);
     }
 
-    return NextResponse.json(works);
+    // Добавляем цену со скидкой
+    const worksWithDiscount = works.map((work) => ({
+      ...work,
+      finalPrice: work.service.price * (1 - (work.client.discount || 0) / 100),
+    }));
+
+    return NextResponse.json(worksWithDiscount);
   } catch (error) {
     console.error("Error fetching works:", error);
     return NextResponse.json(
@@ -74,7 +80,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST, DELETE остаются без изменений
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -116,7 +121,14 @@ export async function POST(request: NextRequest) {
       return work;
     });
 
-    return NextResponse.json(result, { status: 201 });
+    // Добавляем цену со скидкой
+    const resultWithDiscount = {
+      ...result,
+      finalPrice:
+        result.service.price * (1 - (result.client.discount || 0) / 100),
+    };
+
+    return NextResponse.json(resultWithDiscount, { status: 201 });
   } catch (error) {
     console.error("Error creating work:", error);
     return NextResponse.json(

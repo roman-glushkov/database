@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { clientFields } from "@/helpers/constants";
 import { ClientFormData, ClientFormProps } from "@/helpers/types";
+import "../app/forms.css";
 
 const defaultFormData: ClientFormData = {
   firstName: "",

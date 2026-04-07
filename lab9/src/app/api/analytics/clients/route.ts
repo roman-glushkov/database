@@ -13,17 +13,29 @@ export async function GET() {
   for (const work of works) {
     const clientId = work.client.id;
     const clientName = `${work.client.person.lastName} ${work.client.person.firstName}`;
+    const discount = work.client.discount || 0;
+    const originalPrice = work.service.price;
+    const finalPrice = originalPrice * (1 - discount / 100);
+    const saved = originalPrice - finalPrice;
+
     if (!clientMap.has(clientId)) {
       clientMap.set(clientId, {
         id: clientId,
         name: clientName,
+        discount: discount,
         visitCount: 0,
-        totalSpent: 0,
+        totalSpent: 0, // с учетом скидки
+        totalOriginal: 0, // без скидки
+        totalSaved: 0, // сколько сэкономил
       });
     }
     const stats = clientMap.get(clientId);
     stats.visitCount++;
-    stats.totalSpent += work.service.price;
+    stats.totalSpent += finalPrice;
+    stats.totalOriginal += originalPrice;
+    stats.totalSaved += saved;
+    // Обновляем скидку (берем последнюю, обычно она одинаковая)
+    stats.discount = discount;
   }
 
   return NextResponse.json(

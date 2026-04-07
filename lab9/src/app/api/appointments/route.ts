@@ -75,7 +75,13 @@ export async function GET(request: NextRequest) {
       appointments = appointments.filter((app) => new Date(app.date) <= toDate);
     }
 
-    return NextResponse.json(appointments);
+    // Добавляем цену со скидкой
+    const appointmentsWithDiscount = appointments.map((app) => ({
+      ...app,
+      finalPrice: app.service.price * (1 - (app.client.discount || 0) / 100),
+    }));
+
+    return NextResponse.json(appointmentsWithDiscount);
   } catch (error) {
     console.error("Error fetching appointments:", error);
     return NextResponse.json(
@@ -85,7 +91,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST, PUT остаются без изменений
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -137,7 +142,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(appointment, { status: 201 });
+    // Добавляем цену со скидкой
+    const appointmentWithDiscount = {
+      ...appointment,
+      finalPrice:
+        appointment.service.price *
+        (1 - (appointment.client.discount || 0) / 100),
+    };
+
+    return NextResponse.json(appointmentWithDiscount, { status: 201 });
   } catch (error) {
     console.error("Error creating appointment:", error);
     return NextResponse.json(

@@ -7,6 +7,7 @@ import { Barber, Client, Service, Schedule } from "@/types";
 import { getFullName, formatDate } from "@/helpers/format";
 import { categories, categorySpecializations } from "@/helpers/constants";
 import { generateTimeSlots, ExistingAppointment } from "@/helpers/timeSlots";
+import "../../forms.css";
 
 export default function CreateAppointmentPage() {
   const router = useRouter();

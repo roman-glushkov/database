@@ -6,6 +6,7 @@ import Link from "next/link";
 import { serviceFields } from "@/helpers/constants";
 import { specializationOptions } from "@/helpers/constants";
 import { ServiceFormData, ServiceFormProps } from "@/helpers/types";
+import "../app/forms.css";
 
 const defaultFormData: ServiceFormData = {
   name: "",

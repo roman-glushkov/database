@@ -6,6 +6,7 @@ import Link from "next/link";
 import { specializationOptions, barberFields } from "@/helpers/constants";
 import { parseCertificatesToJSON } from "@/helpers/timeSlots";
 import { BarberFormData, BarberFormProps } from "@/helpers/types";
+import "../app/forms.css";
 
 const defaultFormData: BarberFormData = {
   firstName: "",
