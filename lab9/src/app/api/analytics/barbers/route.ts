@@ -10,6 +10,7 @@ export async function GET() {
   });
 
   const barberMap = new Map();
+
   for (const work of works) {
     const barberId = work.barber.id;
     const barberName = `${work.barber.person.lastName} ${work.barber.person.firstName}`;

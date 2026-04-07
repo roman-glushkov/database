@@ -25,6 +25,7 @@ export async function GET() {
     stats.workCount++;
     stats.revenue += work.service.price;
   }
+
   const sorted = Array.from(monthlyMap.entries())
     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .map(([, value]) => value);

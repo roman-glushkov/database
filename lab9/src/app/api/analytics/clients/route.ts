@@ -10,6 +10,7 @@ export async function GET() {
   });
 
   const clientMap = new Map();
+
   for (const work of works) {
     const clientId = work.client.id;
     const clientName = `${work.client.person.lastName} ${work.client.person.firstName}`;

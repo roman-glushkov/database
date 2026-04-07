@@ -7,6 +7,7 @@ export async function GET() {
   });
 
   const serviceMap = new Map();
+
   for (const work of works) {
     const serviceId = work.service.id;
     if (!serviceMap.has(serviceId)) {
