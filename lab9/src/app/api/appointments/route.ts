@@ -135,10 +135,10 @@ export async function PUT(request: NextRequest) {
   if (status === "completed") {
     await prisma.work.create({
       data: {
-        clientId: existingAppointment.clientId,
-        barberId: existingAppointment.barberId,
-        serviceId: existingAppointment.serviceId,
-        workDate: existingAppointment.date,
+        clientId: existingAppointment!.clientId,
+        barberId: existingAppointment!.barberId,
+        serviceId: existingAppointment!.serviceId,
+        workDate: existingAppointment!.date,
       },
     });
   }

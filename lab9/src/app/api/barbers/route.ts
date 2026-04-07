@@ -127,7 +127,7 @@ export async function DELETE(request: NextRequest) {
 
     await tx.schedule.deleteMany({ where: { barberId: id } });
     await tx.barber.delete({ where: { id } });
-    await tx.person.delete({ where: { id: existingBarber.personId } });
+    await tx.person.delete({ where: { id: existingBarber!.personId } });
 
     return existingBarber;
   });

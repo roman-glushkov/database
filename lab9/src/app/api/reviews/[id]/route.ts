@@ -5,82 +5,49 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
+  const { id } = await params;
+  const reviewId = Number(id);
 
-    if (isNaN(id)) {
-      return NextResponse.json({ error: "Неверный ID" }, { status: 400 });
-    }
-
-    const review = await prisma.review.findUnique({
-      where: { id },
-      include: {
-        work: {
-          include: {
-            client: { include: { person: true } },
-            barber: { include: { person: true } },
-            service: true,
-          },
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+    include: {
+      work: {
+        include: {
+          client: { include: { person: true } },
+          barber: { include: { person: true } },
+          service: true,
         },
       },
-    });
+    },
+  });
 
-    if (!review) {
-      return NextResponse.json({ error: "Отзыв не найден" }, { status: 404 });
-    }
-
-    return NextResponse.json(review);
-  } catch (error) {
-    console.error("Error fetching review:", error);
-    return NextResponse.json(
-      { error: "Ошибка загрузки отзыва" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(review);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
-    const body = await request.json();
-    const { rating, text } = body;
+  const { id } = await params;
+  const reviewId = Number(id);
+  const { rating, text } = await request.json();
 
-    const existingReview = await prisma.review.findUnique({
-      where: { id },
-    });
-
-    if (!existingReview) {
-      return NextResponse.json({ error: "Отзыв не найден" }, { status: 404 });
-    }
-
-    const review = await prisma.review.update({
-      where: { id },
-      data: {
-        rating: rating !== undefined ? parseInt(rating) : existingReview.rating,
-        text: text !== undefined ? text : existingReview.text,
-      },
-      include: {
-        work: {
-          include: {
-            client: { include: { person: true } },
-            barber: { include: { person: true } },
-            service: true,
-          },
+  const review = await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      rating: rating !== undefined ? Number(rating) : undefined,
+      text: text !== undefined ? text : undefined,
+    },
+    include: {
+      work: {
+        include: {
+          client: { include: { person: true } },
+          barber: { include: { person: true } },
+          service: true,
         },
       },
-    });
+    },
+  });
 
-    return NextResponse.json(review);
-  } catch (error) {
-    console.error("Error updating review:", error);
-    return NextResponse.json(
-      { error: "Ошибка при обновлении отзыва" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(review);
 }

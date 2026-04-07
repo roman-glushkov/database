@@ -5,69 +5,44 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
+  const { id } = await params;
+  const workId = Number(id);
 
-    if (isNaN(id)) {
-      return NextResponse.json({ error: "Неверный ID" }, { status: 400 });
-    }
+  const work = await prisma.work.findUnique({
+    where: { id: workId },
+    include: {
+      barber: { include: { person: true } },
+      client: { include: { person: true } },
+      service: true,
+      review: true,
+    },
+  });
 
-    const work = await prisma.work.findUnique({
-      where: { id },
-      include: {
-        barber: { include: { person: true } },
-        client: { include: { person: true } },
-        service: true,
-        review: true,
-      },
-    });
-
-    if (!work) {
-      return NextResponse.json({ error: "Работа не найдена" }, { status: 404 });
-    }
-
-    return NextResponse.json(work);
-  } catch (error) {
-    console.error("Error fetching work:", error);
-    return NextResponse.json(
-      { error: "Ошибка загрузки работы" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(work);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
-    const body = await request.json();
-    const { clientId, barberId, serviceId, workDate } = body;
+  const { id } = await params;
+  const workId = Number(id);
+  const { clientId, barberId, serviceId, workDate } = await request.json();
 
-    const work = await prisma.work.update({
-      where: { id },
-      data: {
-        clientId: parseInt(clientId),
-        barberId: parseInt(barberId),
-        serviceId: parseInt(serviceId),
-        workDate: new Date(workDate),
-      },
-      include: {
-        barber: { include: { person: true } },
-        client: { include: { person: true } },
-        service: true,
-      },
-    });
+  const work = await prisma.work.update({
+    where: { id: workId },
+    data: {
+      clientId: Number(clientId),
+      barberId: Number(barberId),
+      serviceId: Number(serviceId),
+      workDate: new Date(workDate),
+    },
+    include: {
+      barber: { include: { person: true } },
+      client: { include: { person: true } },
+      service: true,
+    },
+  });
 
-    return NextResponse.json(work);
-  } catch (error) {
-    console.error("Error updating work:", error);
-    return NextResponse.json(
-      { error: "Ошибка при обновлении работы" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(work);
 }

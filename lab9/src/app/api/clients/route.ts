@@ -107,7 +107,7 @@ export async function DELETE(request: NextRequest) {
 
     await tx.work.deleteMany({ where: { clientId: id } });
     await tx.client.delete({ where: { id } });
-    await tx.person.delete({ where: { id: existingClient.personId } });
+    await tx.person.delete({ where: { id: existingClient!.personId } });
 
     return existingClient;
   });

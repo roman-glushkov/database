@@ -5,71 +5,36 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
+  const { id } = await params;
+  const serviceId = Number(id);
 
-    if (isNaN(id)) {
-      return NextResponse.json({ error: "Неверный ID" }, { status: 400 });
-    }
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    include: {
+      _count: { select: { works: true } },
+    },
+  });
 
-    const service = await prisma.service.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: { works: true },
-        },
-      },
-    });
-
-    if (!service) {
-      return NextResponse.json({ error: "Услуга не найдена" }, { status: 404 });
-    }
-
-    return NextResponse.json(service);
-  } catch (error) {
-    console.error("Error fetching service:", error);
-    return NextResponse.json(
-      { error: "Ошибка загрузки услуги" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(service);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
-    const body = await request.json();
-    const { name, duration, price, category } = body;
+  const { id } = await params;
+  const serviceId = Number(id);
+  const { name, duration, price, category } = await request.json();
 
-    const existingService = await prisma.service.findUnique({
-      where: { id },
-    });
+  const service = await prisma.service.update({
+    where: { id: serviceId },
+    data: {
+      name: name ?? undefined,
+      duration: duration !== undefined ? Number(duration) : undefined,
+      price: price !== undefined ? Number(price) : undefined,
+      category: category !== undefined ? category : undefined,
+    },
+  });
 
-    if (!existingService) {
-      return NextResponse.json({ error: "Услуга не найдена" }, { status: 404 });
-    }
-
-    const service = await prisma.service.update({
-      where: { id },
-      data: {
-        name: name || existingService.name,
-        duration: duration ? parseInt(duration) : existingService.duration,
-        price: price ? parseFloat(price) : existingService.price,
-        category: category !== undefined ? category : existingService.category,
-      },
-    });
-
-    return NextResponse.json(service);
-  } catch (error) {
-    console.error("Error updating service:", error);
-    return NextResponse.json(
-      { error: "Ошибка при обновлении услуги" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(service);
 }

@@ -5,99 +5,70 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
+  const { id } = await params;
+  const barberId = Number(id);
 
-    if (isNaN(id)) {
-      return NextResponse.json({ error: "Неверный ID" }, { status: 400 });
-    }
+  const barber = await prisma.barber.findUnique({
+    where: { id: barberId },
+    include: { person: true },
+  });
 
-    const barber = await prisma.barber.findUnique({
-      where: { id },
-      include: {
-        person: true,
-      },
-    });
-
-    if (!barber) {
-      return NextResponse.json(
-        { error: "Парикмахер не найден" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(barber);
-  } catch (error) {
-    console.error("Error fetching barber:", error);
-    return NextResponse.json(
-      { error: "Ошибка загрузки парикмахера" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(barber);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam);
-    const body = await request.json();
-    const {
-      firstName,
-      lastName,
-      middleName,
-      birthDate,
-      phone,
-      email,
-      experience,
-      specialization,
-      certificates,
-    } = body;
+  const { id } = await params;
+  const barberId = Number(id);
+  const {
+    firstName,
+    lastName,
+    middleName,
+    birthDate,
+    phone,
+    email,
+    experience,
+    specialization,
+    certificates,
+  } = await request.json();
 
-    const barber = await prisma.$transaction(async (tx) => {
-      const existingBarber = await tx.barber.findUnique({
-        where: { id },
-        include: { person: true },
-      });
+  const existingBarber = await prisma.barber.findUnique({
+    where: { id: barberId },
+    include: { person: true },
+  });
 
-      if (!existingBarber) {
-        throw new Error("Парикмахер не найден");
-      }
-
-      await tx.person.update({
-        where: { id: existingBarber.personId },
-        data: {
-          firstName,
-          lastName,
-          middleName: middleName || null,
-          birthDate: birthDate ? new Date(birthDate) : null,
-          phone: phone || null,
-          email: email || null,
-        },
-      });
-
-      const updatedBarber = await tx.barber.update({
-        where: { id },
-        data: {
-          experience: experience ? parseInt(experience) : null,
-          specialization: specialization || null,
-          certificates: certificates || null,
-        },
-        include: { person: true },
-      });
-
-      return updatedBarber;
+  const barber = await prisma.$transaction(async (tx) => {
+    await tx.person.update({
+      where: { id: existingBarber!.personId },
+      data: {
+        firstName: firstName ?? existingBarber!.person.firstName,
+        lastName: lastName ?? existingBarber!.person.lastName,
+        middleName: middleName ?? existingBarber!.person.middleName,
+        birthDate: birthDate
+          ? new Date(birthDate)
+          : existingBarber!.person.birthDate,
+        phone: phone ?? existingBarber!.person.phone,
+        email: email ?? existingBarber!.person.email,
+      },
     });
 
-    return NextResponse.json(barber);
-  } catch (error) {
-    console.error("Error updating barber:", error);
-    return NextResponse.json(
-      { error: "Ошибка при обновлении парикмахера" },
-      { status: 500 }
-    );
-  }
+    const updatedBarber = await tx.barber.update({
+      where: { id: barberId },
+      data: {
+        experience:
+          experience !== undefined
+            ? Number(experience)
+            : existingBarber!.experience,
+        specialization: specialization ?? existingBarber!.specialization,
+        certificates: certificates ?? existingBarber!.certificates,
+      },
+      include: { person: true },
+    });
+
+    return updatedBarber;
+  });
+
+  return NextResponse.json(barber);
 }
