@@ -42,7 +42,6 @@ export default function AnalyticsPage() {
       .catch(console.error);
   }, []);
 
-  // Подсчет общей статистики по скидкам
   const totalOriginal = clientStats.reduce(
     (sum, c) => sum + (c.totalOriginal || 0),
     0

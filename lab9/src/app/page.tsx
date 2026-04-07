@@ -10,7 +10,6 @@ export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Без useEffect - через useState initializer (один раз при монтировании)
   const [particles] = useState(() =>
     Array.from({ length: 20 }, (_, i) => ({
       id: i,

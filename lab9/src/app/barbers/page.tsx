@@ -297,7 +297,6 @@ export default function BarbersPage() {
         </table>
       </div>
 
-      {/* Модальное окно расписания */}
       {showSchedule && (
         <div className="modal-overlay" onClick={() => setShowSchedule(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -370,7 +369,6 @@ export default function BarbersPage() {
         </div>
       )}
 
-      {/* Модальное окно сертификатов */}
       {showCertificates && (
         <div
           className="modal-overlay"

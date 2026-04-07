@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
-// GET - список записей с фильтрацией
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Фильтрация по клиенту
     if (client) {
       const clientLower = client.toLowerCase();
       appointments = appointments.filter((app) => {
@@ -42,7 +40,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по парикмахеру
     if (barber) {
       const barberLower = barber.toLowerCase();
       appointments = appointments.filter((app) => {
@@ -52,7 +49,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по услуге
     if (service) {
       const serviceLower = service.toLowerCase();
       appointments = appointments.filter((app) =>
@@ -60,7 +56,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Фильтрация по диапазону дат
     if (dateFrom) {
       const fromDate = new Date(dateFrom);
       fromDate.setHours(0, 0, 0, 0);
@@ -75,7 +70,6 @@ export async function GET(request: NextRequest) {
       appointments = appointments.filter((app) => new Date(app.date) <= toDate);
     }
 
-    // Добавляем цену со скидкой
     const appointmentsWithDiscount = appointments.map((app) => ({
       ...app,
       finalPrice: app.service.price * (1 - (app.client.discount || 0) / 100),
@@ -142,7 +136,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Добавляем цену со скидкой
     const appointmentWithDiscount = {
       ...appointment,
       finalPrice:

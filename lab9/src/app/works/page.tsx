@@ -6,7 +6,6 @@ import { Work } from "@/types";
 import { formatDate, getFullName, formatMoney } from "@/helpers/format";
 import "../tabs.css";
 
-// Расширенный тип Work с finalPrice
 interface WorkWithDiscount extends Work {
   finalPrice?: number;
 }

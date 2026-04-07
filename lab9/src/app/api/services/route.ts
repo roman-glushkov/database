@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Фильтрация по названию
     if (name) {
       const nameLower = name.toLowerCase();
       services = services.filter((service) =>
@@ -28,12 +27,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Фильтрация по категории
     if (category) {
       services = services.filter((service) => service.category === category);
     }
 
-    // Фильтрация по цене
     if (price) {
       services = services.filter((service) => {
         const servicePrice = service.price;
@@ -52,7 +49,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по популярности (количество выполнений)
     if (popularity) {
       services = services.filter((service) => {
         const worksCount = service._count?.works || 0;

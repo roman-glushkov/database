@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Фильтрация по клиенту
     if (client) {
       const clientLower = client.toLowerCase();
       reviews = reviews.filter((review) => {
@@ -37,7 +36,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по парикмахеру
     if (barber) {
       const barberLower = barber.toLowerCase();
       reviews = reviews.filter((review) => {
@@ -47,7 +45,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по услуге
     if (service) {
       const serviceLower = service.toLowerCase();
       reviews = reviews.filter((review) =>
@@ -55,12 +52,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Фильтрация по оценке
     if (rating) {
       reviews = reviews.filter((review) => review.rating === parseInt(rating));
     }
 
-    // Фильтрация по диапазону дат
     if (dateFrom) {
       const fromDate = new Date(dateFrom);
       fromDate.setHours(0, 0, 0, 0);

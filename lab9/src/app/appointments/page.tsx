@@ -7,7 +7,6 @@ import "../tabs.css";
 import { formatDateTime } from "@/helpers/format";
 import type { Appointment } from "@/types";
 
-// Расширенный тип Appointment с finalPrice
 interface AppointmentWithDiscount extends Appointment {
   finalPrice?: number;
 }

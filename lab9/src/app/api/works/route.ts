@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Фильтрация по клиенту
     if (client) {
       const clientLower = client.toLowerCase();
       works = works.filter((work) => {
@@ -33,7 +32,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по парикмахеру
     if (barber) {
       const barberLower = barber.toLowerCase();
       works = works.filter((work) => {
@@ -43,7 +41,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по услуге
     if (service) {
       const serviceLower = service.toLowerCase();
       works = works.filter((work) =>
@@ -51,7 +48,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Фильтрация по диапазону дат
     if (dateFrom) {
       const fromDate = new Date(dateFrom);
       fromDate.setHours(0, 0, 0, 0);
@@ -64,7 +60,6 @@ export async function GET(request: NextRequest) {
       works = works.filter((work) => new Date(work.workDate) <= toDate);
     }
 
-    // Добавляем цену со скидкой
     const worksWithDiscount = works.map((work) => ({
       ...work,
       finalPrice: work.service.price * (1 - (work.client.discount || 0) / 100),
@@ -121,7 +116,6 @@ export async function POST(request: NextRequest) {
       return work;
     });
 
-    // Добавляем цену со скидкой
     const resultWithDiscount = {
       ...result,
       finalPrice:

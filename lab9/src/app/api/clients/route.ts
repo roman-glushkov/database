@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Фильтрация по ФИО
     if (fio) {
       const fioLower = fio.toLowerCase();
       clients = clients.filter((client) => {
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по скидке
     if (discount) {
       clients = clients.filter((client) => {
         const disc = client.discount || 0;
@@ -50,7 +48,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по количеству визитов
     if (visits) {
       clients = clients.filter((client) => {
         const visitsCount = client._count?.works || 0;
@@ -79,7 +76,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST, DELETE остаются без изменений
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

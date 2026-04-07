@@ -25,9 +25,6 @@ export async function GET() {
     stats.workCount++;
     stats.revenue += work.service.price;
   }
-
-  // Сортируем ОТ СТАРЫХ К НОВЫМ (по возрастанию)
-  // Сортируем ОТ СТАРЫХ К НОВЫМ (по возрастанию)
   const sorted = Array.from(monthlyMap.entries())
     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .map(([, value]) => value);

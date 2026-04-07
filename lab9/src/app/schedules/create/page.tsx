@@ -21,7 +21,6 @@ export default function CreateSchedulePage() {
     {}
   );
 
-  // Загрузка списка парикмахеров
   useEffect(() => {
     fetch("/api/barbers")
       .then((res) => res.json())
@@ -29,7 +28,6 @@ export default function CreateSchedulePage() {
       .catch(console.error);
   }, []);
 
-  // Загрузка существующего расписания
   useEffect(() => {
     if (!selectedBarberId) {
       setSchedules({});
@@ -79,7 +77,6 @@ export default function CreateSchedulePage() {
         const hasData = schedule.startTime || schedule.endTime;
         if (!hasData) continue;
 
-        // Проверка: оба поля должны быть заполнены
         if (
           (schedule.startTime && !schedule.endTime) ||
           (!schedule.startTime && schedule.endTime)
@@ -91,7 +88,6 @@ export default function CreateSchedulePage() {
         const isDayOff = !schedule.startTime && !schedule.endTime;
 
         if (schedule.id > 0) {
-          // Обновление существующего
           await fetch(`/api/schedules/${schedule.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -102,7 +98,6 @@ export default function CreateSchedulePage() {
             }),
           });
         } else if (schedule.startTime && schedule.endTime) {
-          // Создание нового
           await fetch("/api/schedules", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

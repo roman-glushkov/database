@@ -33,7 +33,6 @@ export default function UpdateClientPage() {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    // Если нет clientId - запрос все равно упадет, но это нормально
     fetch(`/api/clients/${clientId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Ошибка загрузки");

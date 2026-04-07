@@ -24,9 +24,9 @@ export async function GET() {
         name: clientName,
         discount: discount,
         visitCount: 0,
-        totalSpent: 0, // с учетом скидки
-        totalOriginal: 0, // без скидки
-        totalSaved: 0, // сколько сэкономил
+        totalSpent: 0,
+        totalOriginal: 0,
+        totalSaved: 0,
       });
     }
     const stats = clientMap.get(clientId);
@@ -34,7 +34,6 @@ export async function GET() {
     stats.totalSpent += finalPrice;
     stats.totalOriginal += originalPrice;
     stats.totalSaved += saved;
-    // Обновляем скидку (берем последнюю, обычно она одинаковая)
     stats.discount = discount;
   }
 

@@ -1,6 +1,3 @@
-/* =========================
-   Контейнер страницы
-========================= */
 .tabs-container {
   width: 100%;
   margin: 0 auto;
@@ -21,9 +18,6 @@
   transition: color 0.3s ease;
 }
 
-/* =========================
-   Таблица
-========================= */
 .table-wrapper {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
@@ -59,7 +53,6 @@
   text-align: center;
 }
 
-/* Линии между строками */
 .table tr + tr {
   border-top: 1px solid var(--glass-border);
 }
@@ -72,7 +65,6 @@
   background: rgba(59, 130, 246, 0.05);
 }
 
-/* Выравнивания */
 .table th:first-child,
 .table td:first-child {
   text-align: left;
@@ -83,9 +75,6 @@
   text-align: left;
 }
 
-/* =========================
-   Кнопки
-========================= */
 .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
@@ -109,7 +98,6 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Маленькие кнопки */
 .btn-sm {
   padding: 0.35rem 0.7rem;
   font-size: 0.75rem;
@@ -125,7 +113,6 @@
   opacity: 0.9;
 }
 
-/* Контейнер кнопок */
 .action-buttons {
   display: flex;
   gap: 0.4rem;
@@ -133,9 +120,6 @@
   align-items: center;
 }
 
-/* =========================
-   Badge
-========================= */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -161,9 +145,6 @@
   color: var(--primary-orange);
 }
 
-/* =========================
-   Загрузка
-========================= */
 .loading {
   text-align: center;
   padding: 3rem;
@@ -171,9 +152,6 @@
   font-size: 1.1rem;
 }
 
-/* =========================
-   Модалка
-========================= */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -237,9 +215,6 @@
   justify-content: flex-end;
 }
 
-/* =========================
-   Таблица расписания
-========================= */
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
@@ -259,9 +234,6 @@
   font-weight: 600;
 }
 
-/* =========================
-   Кнопки действий
-========================= */
 .btn-edit,
 .btn-delete,
 .btn-certificate,
@@ -319,7 +291,6 @@
   filter: brightness(1.05);
 }
 
-/* Список сертификатов */
 .certificates-list {
   margin: 0;
   padding-left: 1.5rem;
@@ -339,7 +310,6 @@
   left: 0;
 }
 
-/* Кнопка закрыть */
 .btn-secondary {
   background: rgba(100, 100, 110, 0.2);
   color: var(--text-primary);
@@ -376,9 +346,6 @@
   opacity: 0.8;
 }
 
-/* =========================
-   Адаптивность
-========================= */
 @media (max-width: 768px) {
   .tabs-container {
     padding: 0 0.5rem;
@@ -410,9 +377,6 @@
   }
 }
 
-/* =========================
-   Кнопки для записей (Выполнено / Отмена)
-========================= */
 .btn-success {
   background: linear-gradient(135deg, #10b981, #059669);
   color: white;
@@ -449,7 +413,6 @@
   filter: brightness(1.05);
 }
 
-/* Поиск */
 .header-actions {
   display: flex;
   gap: 1rem;
@@ -488,7 +451,6 @@
   }
 }
 
-/* Кнопка фильтров */
 .btn-filter {
   background: rgba(59, 130, 246, 0.1);
   color: var(--primary-blue);
@@ -504,7 +466,6 @@
   background: rgba(59, 130, 246, 0.2);
 }
 
-/* Панель фильтров */
 .filters-panel {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
@@ -573,9 +534,6 @@
   background: rgba(239, 68, 68, 0.2);
 }
 
-/* =========================
-   Аналитика - вкладки
-========================= */
 .analytics-tabs {
   display: flex;
   gap: 0.5rem;
@@ -619,7 +577,6 @@
   border-radius: 1px;
 }
 
-/* Итоговая строка в таблице */
 .total-row {
   background: rgba(59, 130, 246, 0.05);
   font-weight: 600;
@@ -630,7 +587,6 @@
   border-top: 2px solid var(--glass-border);
 }
 
-/* Динамика (положительная/отрицательная) */
 .dynamic-positive {
   color: #10b981;
 }
@@ -639,7 +595,6 @@
   color: #ef4444;
 }
 
-/* Адаптивность для вкладок */
 @media (max-width: 768px) {
   .analytics-tabs {
     justify-content: center;

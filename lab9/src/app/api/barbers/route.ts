@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Фильтрация по ФИО
     if (fio) {
       const fioLower = fio.toLowerCase();
       barbers = barbers.filter((barber) => {
@@ -33,7 +32,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по опыту
     if (experience) {
       barbers = barbers.filter((barber) => {
         const exp = barber.experience || 0;
@@ -52,14 +50,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Фильтрация по специализации
     if (specialization) {
       barbers = barbers.filter(
         (barber) => barber.specialization === specialization
       );
     }
 
-    // Фильтрация по графику
     if (schedule) {
       barbers = barbers.filter((barber) => {
         const barberSchedules = barber.schedules || [];
@@ -80,7 +76,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Убираем schedules из ответа (чтобы не дублировать)
     const result = barbers.map(({ ...rest }) => rest);
 
     return NextResponse.json(result);
@@ -93,8 +88,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST, DELETE остаются без изменений
-// POST - создание парикмахера
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -155,7 +148,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - удаление парикмахера
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

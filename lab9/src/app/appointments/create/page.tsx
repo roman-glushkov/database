@@ -14,13 +14,11 @@ export default function CreateAppointmentPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
 
-  // Данные из БД
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
 
-  // Выбранные значения
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -28,7 +26,6 @@ export default function CreateAppointmentPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
-  // Производные состояния
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [availableBarbers, setAvailableBarbers] = useState<Barber[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
@@ -41,7 +38,6 @@ export default function CreateAppointmentPage() {
     (c) => c.id === parseInt(selectedClient)
   );
 
-  // Загрузка данных
   useEffect(() => {
     Promise.all([
       fetch("/api/barbers").then((res) => res.json()),
@@ -58,7 +54,6 @@ export default function CreateAppointmentPage() {
       .catch(console.error);
   }, []);
 
-  // Фильтр услуг по категории
   useEffect(() => {
     if (selectedCategory) {
       setAvailableServices(
@@ -74,7 +69,6 @@ export default function CreateAppointmentPage() {
     setAvailableTimeSlots([]);
   }, [selectedCategory, services]);
 
-  // Фильтр парикмахеров по специализации услуги
   useEffect(() => {
     if (selectedService?.category) {
       const specializations = categorySpecializations[selectedService.category];
@@ -97,7 +91,6 @@ export default function CreateAppointmentPage() {
     setAvailableTimeSlots([]);
   }, [selectedService, barbers]);
 
-  // Генерация временных слотов
   useEffect(() => {
     if (!selectedBarber || !selectedDate || !selectedService) {
       setAvailableTimeSlots([]);
@@ -209,7 +202,6 @@ export default function CreateAppointmentPage() {
         </Link>
         <h1 className="form-title">Новая запись</h1>
 
-        {/* Индикатор шагов */}
         <div className="step-indicator">
           <div className={`step ${step >= 1 ? "active" : ""}`}>
             <span className="step-num">1</span>
@@ -234,7 +226,6 @@ export default function CreateAppointmentPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Шаг 1: Выбор клиента */}
           {step === 1 && (
             <div className="step-content">
               <div className="form-group">
@@ -264,7 +255,6 @@ export default function CreateAppointmentPage() {
             </div>
           )}
 
-          {/* Шаг 2: Выбор категории и услуги */}
           {step === 2 && (
             <div className="step-content">
               <div className="form-group">
@@ -327,8 +317,6 @@ export default function CreateAppointmentPage() {
               </div>
             </div>
           )}
-
-          {/* Шаг 3: Выбор парикмахера */}
           {step === 3 && (
             <div className="step-content">
               <div className="info-box">
@@ -378,7 +366,6 @@ export default function CreateAppointmentPage() {
             </div>
           )}
 
-          {/* Шаг 4: Выбор даты и времени */}
           {step === 4 && (
             <div className="step-content">
               <div className="info-box">
@@ -460,7 +447,6 @@ export default function CreateAppointmentPage() {
             </div>
           )}
 
-          {/* Шаг 5: Подтверждение */}
           {step === 5 && (
             <div className="step-content">
               <div className="confirm-box">

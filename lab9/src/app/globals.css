@@ -1,8 +1,3 @@
-/* =========================
-   ТЕМЫ
-========================= */
-
-/* Светлая тема (по умолчанию) */
 :root {
   --bg-dark: #f8fafc;
   --bg-card: rgba(255, 255, 255, 0.85);
@@ -29,7 +24,6 @@
   --hero-stat-gradient: linear-gradient(135deg, #1e293b, #475569);
 }
 
-/* Темная тема */
 [data-theme="dark"] {
   --bg-dark: #0a0a0f;
   --bg-card: rgba(18, 18, 24, 0.7);
@@ -61,7 +55,7 @@
   padding: 0;
   box-sizing: border-box;
 }
-/* Стили для select в темной теме */
+
 [data-theme="dark"] select,
 [data-theme="dark"] .form-select,
 [data-theme="dark"] select.form-input {
@@ -69,14 +63,12 @@
   background-color: #ffffff !important;
 }
 
-/* Для опций внутри select */
 [data-theme="dark"] select option,
 [data-theme="dark"] .form-select option {
   color: #111827 !important;
   background-color: #ffffff !important;
 }
 
-/* Для всех select на странице */
 [data-theme="dark"] select:focus,
 [data-theme="dark"] .form-select:focus {
   color: #111827 !important;
@@ -102,7 +94,6 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Navbar - стеклянный эффект */
 .navbar {
   position: sticky;
   top: 0;
@@ -160,7 +151,6 @@ body {
   width: 30%;
 }
 
-/* Кнопка переключения темы */
 .theme-toggle {
   background: var(--bg-card);
   border: 1px solid var(--glass-border);
@@ -193,7 +183,6 @@ body {
   z-index: 1;
 }
 
-/* Частицы фона */
 .particles-bg {
   position: fixed;
   top: 0;
@@ -233,7 +222,6 @@ body {
   }
 }
 
-/* Свечение за мышью */
 .mouse-glow {
   position: fixed;
   width: 600px;
@@ -246,7 +234,6 @@ body {
   z-index: 0;
 }
 
-/* Hero секция */
 .hero-section {
   text-align: center;
   padding: 80px 0 60px;
@@ -358,7 +345,6 @@ body {
   background: var(--glass-border);
 }
 
-/* Секции */
 .section-header {
   text-align: center;
   margin-bottom: 48px;
@@ -382,7 +368,6 @@ body {
   color: var(--text-primary);
 }
 
-/* Карточки статистики 3D */
 .stats-section {
   margin-bottom: 80px;
 }
@@ -514,7 +499,6 @@ body {
   transform: translateX(0);
 }
 
-/* Быстрые действия */
 .actions-section {
   margin-bottom: 80px;
 }
@@ -603,7 +587,6 @@ body {
   transform: translateX(4px);
 }
 
-/* Последние записи */
 .recent-section {
   margin-bottom: 40px;
 }
@@ -750,7 +733,6 @@ body {
   transform: translateX(4px);
 }
 
-/* Loading screen */
 .loading-screen {
   position: fixed;
   top: 0;
@@ -809,7 +791,6 @@ body {
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;
@@ -853,7 +834,6 @@ body {
   }
 }
 
-/* Убираем горизонтальный скролл */
 body {
   overflow-x: hidden;
 }
@@ -861,21 +841,19 @@ body {
 .nav-menu {
   overflow-x: visible;
   flex-wrap: wrap;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE и Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .nav-menu::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
-/* Или если хочешь оставить прокрутку но без ползунка, то только скрыть ползунок */
 .nav-menu {
   overflow-x: auto;
   scrollbar-width: thin;
 }
 
-/* Адаптивность - на маленьких экранах переносим меню */
 @media (max-width: 1024px) {
   .nav-menu {
     flex-wrap: wrap;
